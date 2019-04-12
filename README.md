@@ -1,4 +1,4 @@
-# chemlambda-awk
+# chemlambda-js
 
 A javascript implementation of [chemlabda-gui](https://github.com/chorasimilarity/chemlambda-gui/blob/gh-pages/dynamic/README.md)
 
