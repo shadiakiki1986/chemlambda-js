@@ -1,0 +1,68 @@
+<html>
+
+<head>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/esprima/2.7.3/esprima.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/viz.js/2.1.2/viz.js"></script>
+  
+  <!-- downloaded from https://github.com/mdaines/viz.js/releases/download/v2.1.2/lite.render.js -->
+  <script src="lite.render.js"></script>
+</head>  
+<body>
+  
+
+<h3>
+  Lambda calculus plotter
+</h3>
+
+<span>The syntax is a javascript function. Paste it in the box further below and click on "Plot". Examples:</span>
+
+<table>
+  <tr>
+    <td>lambda calculus</td>
+    <td>function to paste in box</td>
+  </tr>
+  <tr>
+    <td>λu.x</td>
+    <td>
+      <pre>u=>x</pre>
+    </td>
+  </tr>
+  <tr>
+    <td>λn.n(λu.x)</td>
+    <td>
+      <pre>n=> n (u=>x)</pre>
+    </td>
+  </tr>
+  <tr>
+    <td>PRED := λn.λf.λx.n (λg.λh.h (g f)) (λu.x) (λu.u)</td>
+    <td>
+      <pre>
+n => f => x => {
+  var L4 = u1 => x
+  var L5 = u2 => u2 // notice that this is u2 (versus u1 above) instead of plain "u"
+  var L6 = g => h => h(g(f))
+  return ((n(L6))(L4))(L5)
+}
+</pre>
+    </td>
+  </tr>
+</table>
+
+<textarea id="js_in" placeholder="Enter javascript function here">
+u=>x
+</textarea>
+<button id="plot" onclick="updateGraph()">
+Plot
+</button>
+
+
+
+<div id="graph_out">
+
+</div>
+
+<script src="index.js"></script>
+
+</body>
+
+</html>
