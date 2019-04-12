@@ -581,7 +581,8 @@ function dict2dot_edges(json_out) {
             }
 
             if(gather[k2].from != nodeLabel) {
-              throw "Node label already set for " + nodeLabel + " from " + JSON.stringify(gather[k2])
+              console.error("details for duplicate variable names error", gather)
+              throw "Node label already set for " + k2 + " to be " + gather[k2].from + " and not " + nodeLabel + ". Details in console. Check if you have duplicate variable names and consider appending integer suffixes, e.g. 'f' to 'f1' and 'f2'"
             }
           }
           break
