@@ -540,47 +540,78 @@ function dict2dot_nodes(row) {
   }
 }
 
+// utility function to identify in/out type
+function type_side_to_inout(type, side) {
+	switch(type) {
+  	case "L":
+    	switch(side) {
+      	case "l": return 'o'
+        case "m": return 'i'
+        case "r": return 'o'
+      }
+  	case "A":
+    	switch(side) {
+      	case "l": return 'i'
+        case "m": return 'o'
+        case "r": return 'i'
+      }
+  }
+  throw "type/side pair not supoprted yet " + type + "/" + side
+}
 
 // utility function to convert dict to dot file row, edges section
 function dict2dot_edges(json_out) {
   gather = {}
   json_out.forEach(row => {
-    if (!(row.l in gather)) gather[row.l] = []
-    if (!(row.m in gather)) gather[row.m] = []
-    if (!(row.r in gather)) gather[row.r] = []
+  	['l', 'm', 'r'].forEach(k1 => {
 
-    gather[row.l] = gather[row.l].concat([row.id + ':' + (row.type == "L" ? 'lo' : 'li')])
-    gather[row.m] = gather[row.m].concat([row.id + ':' + (row.type == "L" ? 'mi' : 'mo')])
-    gather[row.r] = gather[row.r].concat([row.id + ':' + (row.type == "L" ? 'ro' : 'ri')])
+			var k2 = row[k1]
+      if (!(k2 in gather)) gather[k2] = {'from': null, 'to': []}
+
+			// build node string labels
+      var inout = type_side_to_inout(row.type, k1)
+      var nodeLabel = row.id + ':' + k1 + inout
+      
+      // decide to place the node in "from" or "to"
+      switch(inout) {
+      	case "o": {
+            if(gather[k2].from == null) {
+              gather[k2].from = nodeLabel
+              return
+            }
+
+            if(gather[k2].from != nodeLabel) {
+              throw "Node label already set for " + nodeLabel + " from " + JSON.stringify(gather[k2])
+            }
+          }
+          break
+          
+        case "i": {
+            gather[k2].to = gather[k2].to.concat([nodeLabel])
+            return
+          }
+          break
+      }
+
+      throw "Unsupported inout " + inout
+
+    })
   })
 
   return Object.keys(gather).map(function(key) {
-    if (gather[key].length == 2) {
-    	if(gather[key][0].split(':')[1].endsWith('o')) {
-      	if(gather[key][1].split(':')[1].endsWith('i')) {
-      		return gather[key][0] + ' -> ' + gather[key][1]
-        }
-      } else {
-      	if(gather[key][1].split(':')[1].endsWith('o')) {
-      		return gather[key][1] + ' -> ' + gather[key][0]
-        }
-      }
-      
-      throw "Invalid pairs " + JSON.stringify(gather[key])
+		if (gather[key].to.length == 0) {
+    		return [gather[key].from + ' -> ' + 'FROUT']
     }
-    if (gather[key].length == 1) {
-    	if(gather[key][0].split(':')[1].endsWith('o')) {
-        return gather[key][0] + ' -> FROUT'
-      } else {
-        return gather[key][0] + ' -> FRIN'
-      }
-      
-    }
-    console.log('gather = ', gather, 'json_out = ', json_out)
-    throw `
-    Found a lambda calculus term with neither 1 nor 2 entries: 
-    gather["` + key + "\"] = " + gather[key].toString()
-  })
+
+    return gather[key].to.map(toNodeLabel => {
+      	if(gather[key].from == null) {
+        	return toNodeLabel + ' -> ' + 'FRIN'
+        }
+    
+    		return gather[key].from + ' -> ' + toNodeLabel
+    })
+
+  }).reduce((a,b)=>a.concat(b), [])
 }
 
 
@@ -677,7 +708,11 @@ function updateGraph() {
   //dot_in = pred_arrow_dot // for testing
   
   try {
-   dot_in = eval(dot_in)
+    dot_in = eval(dot_in)
+    var lambda_dict = jsjson2dict(esprima.parse(dot_in));
+    console.log("lambda dict", lambda_dict)
+    var lambda_dot = dict2dot_main(lambda_dict)
+    console.log("lambda dot", lambda_dot)
   }
   catch (e) {
     // statements to handle any exceptions
@@ -685,10 +720,7 @@ function updateGraph() {
     return
   }
   
-  var lambda_dict = jsjson2dict(esprima.parse(dot_in));
-  console.log("lambda dict", lambda_dict)
-  var lambda_dot = dict2dot_main(lambda_dict)
-  console.log("lambda dot", lambda_dot)
+
   var viz = new Viz();
   //console.log('dot_in', dot_in)
   viz.renderSVGElement(lambda_dot)
@@ -707,3 +739,4 @@ function updateGraph() {
 
 // In jsfiddle, the below requires the option `No wrap - bottom of body`
 updateGraph()
+

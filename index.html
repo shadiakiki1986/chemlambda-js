@@ -9,7 +9,6 @@
 </head>  
 <body>
   
-
 <h3>
   Lambda calculus plotter
 </h3>
@@ -31,6 +30,12 @@
     <td>λn.n(λu.x)</td>
     <td>
       <pre>n=> n (u=>x)</pre>
+    </td>
+  </tr>
+  <tr>
+    <td>three := λf.λx.f(f(f x))</td>
+    <td>
+      <pre>f => x => f(f(f(x)))</pre>
     </td>
   </tr>
   <tr>
@@ -60,6 +65,8 @@ Plot
 <div id="graph_out">
 
 </div>
+
+
 
 <div>
   Found a bug? File an issue on <a href="https://github.com/shadiakiki1986/chemlambda-js">github</a>
