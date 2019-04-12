@@ -728,6 +728,7 @@ function updateGraph() {
     .then(function(element) {
       document.getElementById("graph_out").innerHTML = "";
       document.getElementById("graph_out").appendChild(element);
+      document.getElementById("dot_out").innerHTML = lambda_dot;
     })
     .catch(error => {
       // Create a new Viz instance (@see Caveats page for more info)

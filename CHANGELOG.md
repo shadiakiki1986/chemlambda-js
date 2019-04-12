@@ -5,6 +5,8 @@ Version 0.0.2 (2019-04-12)
 * add `three` to the examples on the html main page
 * clearer error message for case of duplicated variable name
 * add example `PRED(3)` to html page
+* display the resultant dot file below the graph
+* add link to viz-js.com for further graph re-writes and manipulation
 
 
 Version 0.0.1 (2019-04-12)
