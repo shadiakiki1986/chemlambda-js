@@ -48,9 +48,34 @@ n => f => x => {
   var L6 = g => h => h(g(f))
   return ((n(L6))(L4))(L5)
 }
-</pre>
+      </pre>
     </td>
   </tr>
+  <tr>
+    <td>
+      <pre>
+			PRED(three) (check above for definitions of PRED and three)
+      </pre>
+    </td>
+    <td>
+      <pre>
+PRED3 => {
+
+  var PRED = n => f1 => x1 => {
+    var L4 = u1 => x1
+    var L5 = u2 => u2
+    var L6 = g => h => h(g(f1))
+    return ((n(L6))(L4))(L5)
+  }
+
+  var three = f2 => x2 => f2(f2(f2(x2)))
+
+  return PRED(three)
+}
+      </pre>
+    </td>
+  </tr>
+
 </table>
 
 <textarea id="js_in" placeholder="Enter javascript function here">

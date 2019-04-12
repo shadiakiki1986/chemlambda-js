@@ -4,6 +4,7 @@ Version 0.0.2 (2019-04-12)
 * modify `dict2dot_edges` to support a lambda term that is used in multiple node inputs, e.g. `three` in lambda calculus shows `f` 3 times
 * add `three` to the examples on the html main page
 * clearer error message for case of duplicated variable name
+* add example `PRED(3)` to html page
 
 
 Version 0.0.1 (2019-04-12)
