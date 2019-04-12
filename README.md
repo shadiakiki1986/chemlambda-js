@@ -15,7 +15,7 @@ The code here was based on the jsfiddle [shadiakiki1986/wnysq1p0](https://jsfidd
 
 ## Usage
 
-Open `index.html` in a browser and follow the instructions in the main page
+Open `index.html` in a browser (or hosted version [here](http://www.teamshadi.net/chemlambda-js/)) and follow the instructions on the page
 
 
 ## License
