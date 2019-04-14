@@ -1,11 +1,13 @@
 <html>
 
 <head>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/esprima/2.7.3/esprima.min.js"></script>
+  <meta charset="utf-8"/>
+  <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/esprima/2.7.3/esprima.min.js"></script> -->
+  <script src="https://unpkg.com/esprima@~4.0/dist/esprima.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/viz.js/2.1.2/viz.js"></script>
   
   <!-- downloaded from https://github.com/mdaines/viz.js/releases/download/v2.1.2/lite.render.js -->
-  <script src="lite.render.js"></script>
+  <script src="vendor/lite.render.js"></script>
 </head>  
 <body>
   
@@ -104,6 +106,8 @@ and perform graph re-writes there
   Found a bug? File an issue on <a href="https://github.com/shadiakiki1986/chemlambda-js">github</a>
 </div>
 
+<script src="LambdaTerms.js"></script>
+<script src="LambdaReader.js"></script>
 <script src="index.js"></script>
 
 </body>
