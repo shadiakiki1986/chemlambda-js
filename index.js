@@ -1,7 +1,9 @@
-
 ////////////////////
 // plot graph of input function from the HTML text box
 
+
+var lr = new LambdaReader()
+var lt = new LambdaTerms()
 
 function updateGraph() {
   var dot_in = document.getElementById("js_in").value
