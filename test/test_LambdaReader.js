@@ -79,7 +79,7 @@ describe('LambdaReader', function() {
 
 
 
-    it('jsjson2dict', function() {
+    it('jsjson2dict_nodes', function() {
       
       // fixtures
       // PRED := λn.λf.λx.n (λg.λh.h (g f)) (λu.x) (λu.u)
@@ -132,7 +132,7 @@ describe('LambdaReader', function() {
       test_data.forEach(x => {
         //console.log("testing", x.f.toString(), x.f)
         // Note that esprima.parse requires a string instead of a function in version 4.0.1 (unlike version 2.7.3)
-        var actual = lr.jsjson2dict(esprima.parse(x.f.toString()))
+        var actual = lr.jsjson2dict_nodes(esprima.parse(x.f.toString()))
         actual = JSON.stringify(actual)
         var expected = JSON.stringify(x.e)
         assert.equal(

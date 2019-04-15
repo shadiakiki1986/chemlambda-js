@@ -171,7 +171,7 @@
           
           <div class="row">
             
-            Graph:
+            Graph (initial):
             
             <select v-model="dotFrom">
               <option value="lambda" selected>From lambda</option>
@@ -226,14 +226,28 @@
             </div>
               
             <div v-if="rwFrom == 'custom'">
-              <textarea v-model="rwVal" ></textarea>
+              <div v-for="item in rwVal" class="row">
+                {{item.k}} {{item.type}} {{item.n1}} {{item.n2}} <button class="btn btn-xs btn-danger" @click="rmRewrite(item.k)">rm</button>
+              </div>
+              <div class="row">
+                <select v-model="rwNew.type">
+                  <option value="beta">beta</option>
+                </select>
+                <input type="text" v-model="rwNew.n1" placeholder="n1" />
+                <input type="text" v-model="rwNew.n2" placeholder="n2" />
+                <button class="btn btn-xs btn-info" @click="addRewrite()">Add</button>
+              </div>
             </div>
           </div>
           
         </div>
 
         
-        <div class="col-md-3" v-html="graphOut.outerHTML">
+        <div class="col-md-3" v-if="errorMsg">
+          {{errorMsg}}
+        </div>
+        
+        <div class="col-md-3" v-html="graphOut.outerHTML" v-if="!errorMsg">
         </div>
         
       </div>
