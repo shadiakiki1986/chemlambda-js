@@ -1,115 +1,203 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
 
-<head>
-  <meta charset="utf-8"/>
-  <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/esprima/2.7.3/esprima.min.js"></script> -->
-  <script src="https://unpkg.com/esprima@~4.0/dist/esprima.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/viz.js/2.1.2/viz.js"></script>
+  <head>
+    <meta charset="utf-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>chemlambda-js</title>
+    
+    <!-- getbootstrap.com Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
   
-  <!-- downloaded from https://github.com/mdaines/viz.js/releases/download/v2.1.2/lite.render.js -->
-  <script src="vendor/lite.render.js"></script>
-</head>  
-<body>
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/esprima/2.7.3/esprima.min.js"></script> -->
+    <script src="https://unpkg.com/esprima@~4.0/dist/esprima.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/viz.js/2.1.2/viz.js"></script>
+    
+    <!-- development version, includes helpful console warnings -->
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    
+    <!-- production version, optimized for size and speed -->
+    <!-- <script src="https://cdn.jsdelivr.net/npm/vue"></script> -->
+    
+    <!-- downloaded from https://github.com/mdaines/viz.js/releases/download/v2.1.2/lite.render.js -->
+    <script src="vendor/lite.render.js"></script>
+  </head>  
+  <body>
   
-<h3>
-  Lambda calculus plotter (<a href="https://github.com/shadiakiki1986/chemlambda-js">source</a>)
-</h3>
+    <div class="container">
+      
+      <!-- Static navbar 
+           Copied from https://getbootstrap.com/docs/3.3/examples/navbar/#
+      -->
+      <nav class="navbar navbar-default">
+        <div class="container-fluid">
+          <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+              <span class="sr-only">Toggle navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="#">chemlambda-js</a>
+          </div>
+          <div id="navbar" class="navbar-collapse collapse">
+            <ul class="nav navbar-nav">
+              <li class="active">
+                <button id="plot" onclick="updateGraph()">
+                  Plot
+                </button>
+              </li>
+            </ul>
+            <ul class="nav navbar-nav navbar-right">
+              <li class="active"><a href="https://github.com/shadiakiki1986/chemlambda-js">source <span class="sr-only">(current)</span></a></li>
+            </ul>
+          </div><!--/.nav-collapse -->
+        </div><!--/.container-fluid -->
+      </nav>
 
-<span>The syntax is a javascript function. Paste it in the box further below and click on "Plot". Examples:</span>
+            
+      <h3>
+        Lambda calculus plotter
+      </h3>
+      
+      <!-- no longer needed as inline table 
+      <span>
+        The syntax is a javascript function. Paste it in the box further below and click on "Plot".
+        Examples:
+      </span>
 
-<table>
-  <tr>
-    <td>lambda calculus</td>
-    <td>function to paste in box</td>
-  </tr>
-  <tr>
-    <td>λu.x</td>
-    <td>
-      <pre>u=>x</pre>
-    </td>
-  </tr>
-  <tr>
-    <td>λn.n(λu.x)</td>
-    <td>
-      <pre>n=> n (u=>x)</pre>
-    </td>
-  </tr>
-  <tr>
-    <td>three := λf.λx.f(f(f x))</td>
-    <td>
-      <pre>f => x => f(f(f(x)))</pre>
-    </td>
-  </tr>
-  <tr>
-    <td>PRED := λn.λf.λx.n (λg.λh.h (g f)) (λu.x) (λu.u)</td>
-    <td>
-      <pre>
-n => f => x => {
-  var L4 = u1 => x
-  var L5 = u2 => u2 // notice that this is u2 (versus u1 above) instead of plain "u"
-  var L6 = g => h => h(g(f))
-  return ((n(L6))(L4))(L5)
-}
-      </pre>
-    </td>
-  </tr>
-  <tr>
-    <td>
-      <pre>
-			PRED(three) (check above for definitions of PRED and three)
-      </pre>
-    </td>
-    <td>
-      <pre>
-PRED3 => {
+      <table>
+        <tr>
+          <td>lambda calculus</td>
+          <td>function to paste in box</td>
+        </tr>
+        <tr>
+          <td>λu.x</td>
+          <td>
+            <pre>u=>x</pre>
+          </td>
+        </tr>
+        <tr>
+          <td>λn.n(λu.x)</td>
+          <td>
+            <pre>n=> n (u=>x)</pre>
+          </td>
+        </tr>
+        <tr>
+          <td>three := λf.λx.f(f(f x))</td>
+          <td>
+            <pre>f => x => f(f(f(x)))</pre>
+          </td>
+        </tr>
+        <tr>
+          <td>PRED := λn.λf.λx.n (λg.λh.h (g f)) (λu.x) (λu.u)</td>
+          <td>
+            <pre>
+      n => f => x => {
+        var L4 = u1 => x
+        var L5 = u2 => u2 // notice that this is u2 (versus u1 above) instead of plain "u"
+        var L6 = g => h => h(g(f))
+        return ((n(L6))(L4))(L5)
+      }
+            </pre>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <pre>
+      			PRED(three) (check above for definitions of PRED and three)
+            </pre>
+          </td>
+          <td>
+            <pre>
+      PRED3 => {
+      
+        var PRED = n => f1 => x1 => {
+          var L4 = u1 => x1
+          var L5 = u2 => u2
+          var L6 = g => h => h(g(f1))
+          return ((n(L6))(L4))(L5)
+        }
+      
+        var three = f2 => x2 => f2(f2(f2(x2)))
+      
+        return PRED(three)
+      }
+            </pre>
+          </td>
+        </tr>
+      
+      </table>
+      -->
+      
+      <div class="row" id="app">
+        
+        <div class="col-md-4" v-if="dotFrom == 'lambda'">
+          
+          <div class="row">
+            <select id="jsExamples" v-model="jsExSelected"> <!-- @change="jsExOnChange($event)"> -->
+              <option v-for="item in jsExamplesOpt" :value="item">{{item.lambda}}</option>
+            </select>
+          </div>
+          
+          
+          <div class="row">
+            <div v-if="jsExSelected.lambda != 'other'">
+              <pre>{{jsExSelected.javascript}}</pre>
+            </div>
+            
+            <div v-if="jsExSelected.lambda == 'other'">
+              <textarea placeholder="Enter javascript function here" v-model="jsExSelected.javascript" ></textarea>
+            </div>
+          </div>
+          
+          
+        </div>
+  
+        <div class="col-md-4">
+          
+          <div class="row">
+            <select v-model="dotFrom">
+              <option value="lambda" selected>From lambda</option>
+              <option value="custom">Custom</option>
+            </select>
+          </div>
 
-  var PRED = n => f1 => x1 => {
-    var L4 = u1 => x1
-    var L5 = u2 => u2
-    var L6 = g => h => h(g(f1))
-    return ((n(L6))(L4))(L5)
-  }
+          <div class="row">
+            <div v-if="dotFrom == 'lambda'">
+              <pre>{{dotFromLambda}}</pre>
+            </div>
+              
+            <div v-if="dotFrom == 'custom'">
+              <textarea v-model="dotOut" ></textarea> <!-- onchange="dotChange()" -->
+            </div>
+          </div>
+          
+          <span>
+            Copy-paste to <a href="http://viz-js.com/">viz.js</a>
+            and perform graph re-writes there
+          </span>
+        </div>
 
-  var three = f2 => x2 => f2(f2(f2(x2)))
-
-  return PRED(three)
-}
-      </pre>
-    </td>
-  </tr>
-
-</table>
-
-<textarea id="js_in" placeholder="Enter javascript function here">
-u=>x
-</textarea>
-<button id="plot" onclick="updateGraph()">
-Plot
-</button>
+        
+        <div class="col-md-4" v-html="graphOut.outerHTML">
+        </div>
+        
+      </div>
 
 
+    </div> <!-- end main container of page -->
 
-<div id="graph_out">
+    
+    <div>
+      Found a bug? File an issue on <a href="https://github.com/shadiakiki1986/chemlambda-js">github</a>
+    </div>
+    
+    <script src="LambdaTerms.js"></script>
+    <script src="LambdaReader.js"></script>
+    <script src="index.js"></script>
 
-</div>
-
-<div>
-<pre id="dot_out"></pre>
-<span>
-Copy-paste to <a href="http://viz-js.com/">viz.js</a>
-and perform graph re-writes there
-</span>
-</div>
-
-
-<div>
-  Found a bug? File an issue on <a href="https://github.com/shadiakiki1986/chemlambda-js">github</a>
-</div>
-
-<script src="LambdaTerms.js"></script>
-<script src="LambdaReader.js"></script>
-<script src="index.js"></script>
-
-</body>
+  </body>
 
 </html>

@@ -1,3 +1,9 @@
+Version 0.0.4 (2019-04-15)
+
+* feature: use bootstrap css
+* feature: convert to vue.js app
+
+
 Version 0.0.3 (2019-04-13)
 
 * enhancement: major code rewrite to split out the different functions and start official unit testing
