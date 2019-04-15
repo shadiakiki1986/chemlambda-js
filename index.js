@@ -50,23 +50,94 @@ var jsExamplesOpt = [
 var app = new Vue({
   el: '#app',
   data: {
+    "dotFrom": "lambda",
+    "rwFrom": "none",
+
     "jsExamplesOpt": jsExamplesOpt,
     "jsExSelected": jsExamplesOpt[0],
-    "jsOut": "",
-    "dotFrom": "lambda",
-    "dotOut1": "",
-    "dotOut2": "",
+    "dot1Manual": "",
+    "rwVal": "",
+
+    "jsAuto": "",
+    "dot1Auto": "",
+    "dot2Auto": "",
+    
     "graphOut": ""
   },
   
   methods: {
-    processJs: function() {
-      this.jsOut = this.jsExSelected.javascript;
+    pushJs: function() {
+      this.jsAuto = this.jsExSelected.javascript;
+      this.dot1Auto = this.dot1FromJsAuto
+      this.dot2Auto = this.dot1Auto // without any re-writes
     },
     
-    processDot: function() {
+    pushDot: function() {
+      this.dot1Auto = this.dot1Manual
+      this.dot2Auto = this.dot1Auto // without any re-writes
+    },
+    
+    pushRw: function() {
+      if(this.dotFrom=='lambda') {
+        this.jsAuto = this.jsExSelected.javascript;
+        this.dot1Auto = this.dot1FromJsAuto
+      } else {
+        this.dot1Auto = this.dot1Manual
+      }
+      // final step
+      this.dot2Auto = this.dot2FromDot1Auto; // with re-writes
+    }
+    
+  },
+  
+  // https://vuejs.org/v2/guide/computed.html#Computed-vs-Watched-Property
+  computed: {
+    
+    "dot1FromJsAuto": function () {
 
-      var lambda_dot = this.dotOut2; // document.getElementById("dot_out").innerHTML;
+      if(this.jsAuto == "") {
+        return ""
+      }
+      
+      var dot_in = this.jsAuto;
+      //dot_in = 'digraph { a -> b }' // for testing
+      //dot_in = pred_arrow_dot // for testing
+      
+      try {
+        dot_in = eval(dot_in);
+        var lambda_dict = lr.jsjson2dict(esprima.parse(dot_in.toString()));
+        console.log("lambda dict", lambda_dict)
+        var lambda_dot = lr.dict2dot_main(lambda_dict)
+        console.log("lambda dot", lambda_dot)
+      }
+      catch (e) {
+        // statements to handle any exceptions
+        document.getElementById("graph_out").innerHTML = e;
+        return
+      }
+      
+      return lambda_dot;
+      //document.getElementById("dot_out").innerHTML = lambda_dot;
+      //dotChange()
+    },
+    
+    
+    "dot2FromDot1Auto": function() {
+      // compute new graph from re-writes (rwVal)
+      // FIXME should compute something
+      return this.dot1Auto;
+    }
+    
+  },
+  
+  watch: {
+    
+    "dot2Auto": function() {
+      // cannot move this to a vue.js computed
+      // because it returns its value inside a promise
+      
+      // convert to graph
+      var lambda_dot = this.dot2Auto;
 
       var viz = new Viz();
       var self= this;
@@ -86,46 +157,7 @@ var app = new Vue({
           
           self.graphOut = error;
         });
-
-    }
-  },
-  
-  // https://vuejs.org/v2/guide/computed.html#Computed-vs-Watched-Property
-  computed: {
-    
-    "dotFromLambda": function () {
-      if(this.jsOut == "") { return }
       
-      var dot_in = this.jsOut;
-      //dot_in = 'digraph { a -> b }' // for testing
-      //dot_in = pred_arrow_dot // for testing
-      
-      try {
-        dot_in = eval(dot_in);
-        var lambda_dict = lr.jsjson2dict(esprima.parse(dot_in.toString()));
-        console.log("lambda dict", lambda_dict)
-        var lambda_dot = lr.dict2dot_main(lambda_dict)
-        console.log("lambda dot", lambda_dot)
-      }
-      catch (e) {
-        // statements to handle any exceptions
-        document.getElementById("graph_out").innerHTML = e;
-        return
-      }
-      
-      this.dotOut1 = lambda_dot;
-      return lambda_dot;
-      //document.getElementById("dot_out").innerHTML = lambda_dot;
-      //dotChange()
-    }
-    
-  },
-  
-  watch: {
-    
-    "dotOut1": function() {
-      this.dotOut2 = this.dotOut1
-      this.processDot()
     }
 
   }

@@ -3,6 +3,7 @@ Version 0.0.4 (2019-04-15)
 * feature: use bootstrap css
 * feature: convert to vue.js app
 * enhancement: instead of live updates of the graph while editing the textarea, stages with "plot" buttons
+* feature: prepare for adding re-writes
 
 
 Version 0.0.3 (2019-04-13)

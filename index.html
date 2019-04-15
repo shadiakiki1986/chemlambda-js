@@ -133,15 +133,17 @@
       
       <div class="row" id="app">
         
-        <div class="col-md-4" v-if="dotFrom == 'lambda'">
+        <div class="col-md-3" v-if="dotFrom == 'lambda'">
           
           <div class="row">
+            
+            Lambda term:
             
             <select id="jsExamples" v-model="jsExSelected"> <!-- @change="jsExOnChange($event)"> -->
               <option v-for="item in jsExamplesOpt" :value="item">{{item.title}}</option>
             </select>              
 
-            <button @click="processJs()" class="btn btn-xs btn-primary">
+            <button @click="pushJs()" class="btn btn-xs btn-primary" v-if="dotFrom=='lambda' && rwFrom=='none'">
               Plot
             </button>
             
@@ -165,16 +167,19 @@
           
         </div>
   
-        <div class="col-md-4">
+        <div class="col-md-3">
           
           <div class="row">
+            
+            Graph:
+            
             <select v-model="dotFrom">
               <option value="lambda" selected>From lambda</option>
               <option value="custom">Custom</option>
             </select>
             
 
-            <button @click="processDot()" class="btn btn-xs btn-primary" v-if="dotFrom=='custom'">
+            <button @click="pushDot()" class="btn btn-xs btn-primary" v-if="dotFrom=='custom' && rwFrom=='none'">
               Plot
             </button>
 
@@ -182,11 +187,11 @@
 
           <div class="row">
             <div v-if="dotFrom == 'lambda'">
-              <pre>{{dotFromLambda}}</pre>
+              <pre>{{dot1Auto}}</pre>
             </div>
               
             <div v-if="dotFrom == 'custom'">
-              <textarea v-model="dotOut2" ></textarea> <!-- onchange="dotChange()" -->
+              <textarea v-model="dot1Manual" ></textarea> <!-- onchange="dotChange()" -->
             </div>
           </div>
           
@@ -195,9 +200,40 @@
             and perform graph re-writes there
           </span>
         </div>
+        
+        
+        <div class="col-md-3">
+          
+          <div class="row">
+            
+            Re-writes:
+            
+            <select v-model="rwFrom">
+              <option value="none" selected>None</option>
+              <option value="custom">Custom</option>
+            </select>
+            
+
+            <button @click="pushRw()" class="btn btn-xs btn-primary" v-if="rwFrom!='none'">
+              Plot
+            </button>
+
+          </div>
+
+          <div class="row">
+            <div v-if="rwFrom == 'none'">
+              &nbsp;
+            </div>
+              
+            <div v-if="rwFrom == 'custom'">
+              <textarea v-model="rwVal" ></textarea>
+            </div>
+          </div>
+          
+        </div>
 
         
-        <div class="col-md-4" v-html="graphOut.outerHTML">
+        <div class="col-md-3" v-html="graphOut.outerHTML">
         </div>
         
       </div>
