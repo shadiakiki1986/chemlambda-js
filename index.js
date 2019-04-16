@@ -74,6 +74,7 @@ var app = new Vue({
 
     "jsExamplesOpt": jsExamplesOpt,
     "jsExSelected": jsExamplesOpt[0],
+    
     "dot1Manual": "",
     "rwNew": {"type": "", "n1": "", "n2": ""},
     "rwVal": [],
@@ -86,7 +87,11 @@ var app = new Vue({
     "error2Msg": "",
     
     "graph1": "",
-    "graph2": ""
+    "graph2": "",
+    
+    "jsExVisible": false,
+    "dot1Visible": false,
+    "graph1Visible": true
   },
   
   methods: {

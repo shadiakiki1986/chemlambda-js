@@ -133,6 +133,7 @@
       
       <div class="row" id="app">
         
+        <!-- column 1 for user input -->
         <div class="col-md-3" v-if="dotFrom == 'lambda'">
           
           <div class="row">
@@ -146,15 +147,20 @@
             <button @click="pushJs()" class="btn btn-xs btn-primary" v-if="dotFrom=='lambda'">
               Plot
             </button>
-            
+
           </div>
           
           <div class="row">
             {{jsExSelected.lambda}}
           </div>
           
-          
           <div class="row">
+            <button @click="jsExVisible = !jsExVisible" class="btn btn-xs btn-info">
+              Details
+            </button>
+          </div>
+          
+          <div class="row" v-if="jsExVisible">
             <div v-if="jsExSelected.lambda != 'other'">
               <pre>{{jsExSelected.javascript}}</pre>
             </div>
@@ -164,10 +170,6 @@
             </div>
           </div>
           
-          
-        </div>
-  
-        <div class="col-md-3">
           
           <div class="row">
             
@@ -186,6 +188,12 @@
           </div>
 
           <div class="row">
+            <button @click="dot1Visible = !dot1Visible" class="btn btn-xs btn-info">
+              Details
+            </button>
+          </div>
+
+          <div class="row" v-if="dot1Visible">
             <div v-if="dotFrom == 'lambda'">
               <pre>{{dot1Auto}}</pre>
             </div>
@@ -193,24 +201,28 @@
             <div v-if="dotFrom == 'custom'">
               <textarea v-model="dot1Manual" ></textarea> <!-- onchange="dotChange()" -->
             </div>
-          </div>
           
-          <span>
-            Copy-paste to <a href="http://viz-js.com/">viz.js</a>
-            and perform graph re-writes there
-          </span>
-        </div>
-        
-        <div class="col-md-3">
-          <div v-if="error1Msg">
-            {{error1Msg}}
+            <span>
+              Copy-paste to <a href="http://viz-js.com/">viz.js</a>
+              and perform graph re-writes there
+            </span>
+
           </div>
+
+          <div class="row">
+            
+            <div v-if="error1Msg" class="alert alert-danger">
+              Error in graph before re-writes:
+              <br/>
+              {{error1Msg}}
+            </div>
+
+            <button @click="graph1Visible = !graph1Visible" class="btn btn-xs btn-info" :disabled="rwFrom=='none'">
+              Show/hide graph (before re-writes)
+            </button>
   
-          <div v-html="graph1.outerHTML" v-if="!error1Msg">
           </div>
-        </div>
-        
-        <div class="col-md-3">
+
           
           <div class="row">
             
@@ -226,13 +238,15 @@
               Plot
             </button>
 
+            <div v-if="error2Msg" class="alert alert-danger">
+              Error in graph after re-writes:
+              <br/>
+              {{error2Msg}}
+            </div>
+
           </div>
 
           <div class="row">
-            <div v-if="rwFrom == 'none'">
-              &nbsp;
-            </div>
-              
             <div v-if="rwFrom == 'custom'">
               <div v-for="item in rwVal" class="row">
                 <span v-if="item != null">
@@ -249,13 +263,20 @@
               </div>
             </div>
           </div>
+
           
         </div>
-
-        <div v-if="rwFrom == 'custom'" class="col-md-3">
-          <div v-if="error2Msg">
-            {{error2Msg}}
+        
+        <!-- column 2 for graph before re-writes -->
+        <div class="col-md-3" v-if="!error1Msg && (graph1Visible || rwFrom=='none') && !!dot1Auto">
+          Graph before re-writes (if any)
+          <div v-html="graph1.outerHTML">
           </div>
+        </div>
+        
+        <!-- column 3 for graph after re-writes -->
+        <div class="col-md-3" v-if="rwFrom == 'custom' && !!dot2Auto">
+          Graph after re-writes (if any)
           
           <div v-html="graph2.outerHTML" v-if="!error2Msg">
           </div>
