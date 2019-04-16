@@ -60,6 +60,11 @@ function createAssociativeArray(arr1, arr2) {
     return arr;
 }
 
+// https://stackoverflow.com/a/21147462
+function clone(assArray) {
+  return JSON.parse(JSON.stringify(assArray))
+}
+
 
 var app = new Vue({
   el: '#app',
@@ -77,47 +82,81 @@ var app = new Vue({
     "dict1Auto": "",
     "dict2Auto": "",
 
-    "errorMsg": "",
-    "graphOut": ""
+    "error1Msg": "",
+    "error2Msg": "",
+    
+    "graph1": "",
+    "graph2": ""
   },
   
   methods: {
     pushJs: function() {
-      this.jsAuto = this.jsExSelected.javascript;
-      this.dict1Auto = this.dict1FromJsAuto
-      this.dict2Auto = this.dict1Auto // without any re-writes
+      this.error1Msg = ""
+      this.error2Msg = ""
+      this.jsAuto = clone(this.jsExSelected.javascript);
+      this.dict1Auto = clone(this.dict1FromJsAuto)
+      this.dict2Auto = "" // clone(this.dict1Auto) // without any re-writes
     },
     
     pushDot: function() {
-      this.dict1Auto = this.dot1Manual
-      this.dict2Auto = this.dict1Auto // without any re-writes
+      this.error1Msg = ""
+      this.error2Msg = ""
+      this.dict1Auto = clone(this.dot1Manual)
+      this.dict2Auto = "" // clone(this.dict1Auto) // without any re-writes
     },
     
     pushRw: function() {
+      this.error1Msg = ""
+      this.error2Msg = ""
       if(this.dotFrom=='lambda') {
-        this.jsAuto = this.jsExSelected.javascript;
-        this.dict1Auto = this.dict1FromJsAuto
+        this.jsAuto = clone(this.jsExSelected.javascript);
+        this.dict1Auto = clone(this.dict1FromJsAuto)
       } else {
-        this.dict1Auto = this.dot1Manual
+        this.dict1Auto = clone(this.dot1Manual)
       }
       // final step
-      this.dict2Auto = this.dict2FromDict1Auto; // with re-writes
+      this.dict2Auto = clone(this.dict2FromDict1Auto); // with re-writes
+      console.log("finished pushRw")
     },
     
     addRewrite: function() {
       var k = this.rwVal.length
-      this.rwVal[k] = {
+      // https://vuejs.org/v2/guide/list.html#Caveats
+      this.rwVal.push({
           "k": k,
           "type": this.rwNew.type,
           "n1": this.rwNew.n1,
           "n2": this.rwNew.n2
-        }
+        })
       this.rwNew = {"type": "", "n1": "", "n2": ""}
     },
     
     rmRewrite: function(k) {
       // set null instead of delete to maintain key from length
-      this.rwVal[k] = null
+
+      // https://vuejs.org/v2/guide/list.html#Caveats
+      // this.rwVal[k] = null
+      Vue.set(this.rwVal, k, null)
+    },
+    
+    dict2graph: function(lambda_dict) {
+
+      // convert to dot
+      try {
+        
+        var lambda_dot = lr.dict2dot_main(lambda_dict)
+        //console.log("lambda dot", lambda_dot)
+      } catch (e) {
+        // statements to handle any exceptions
+        console.error(e);
+        this.error1Msg = e;
+        return
+      }
+
+      // convert to graph
+      var viz = new Viz();
+      return viz.renderSVGElement(lambda_dot);
+
     }
     
   },
@@ -146,6 +185,7 @@ var app = new Vue({
       //dot_in = pred_arrow_dot // for testing
       
       try {
+        
         dot_in = eval(dot_in);
         var lambda_dict = lr.jsjson2dict_main(esprima.parse(dot_in.toString()));
         //var lambda_dot = lr.dict2dot_main(lambda_dict) // dot file before re-writes
@@ -154,7 +194,7 @@ var app = new Vue({
       catch (e) {
         // statements to handle any exceptions
         console.error(e);
-        this.errorMsg = e;
+        this.error1Msg = e;
         return
       }
       
@@ -166,25 +206,29 @@ var app = new Vue({
     
     "dict2FromDict1Auto": function() {
       // compute new graph from re-writes (rwVal)
-      // FIXME should compute something like below dict2Auto
-      return this.dict1Auto;
-    }
-    
-  },
-  
-  watch: {
-    
-    "dict2Auto": function() {
-      // cannot move this to a vue.js computed
-      // because it returns its value inside a promise
-      var lambda_dict = this.dict2Auto;
+      console.log("re-calculuate dict2fromdict1auto", this.rwVal)
+      
+      if(this.rwFrom=='none') {
+        // no re-writes
+        return this.dict1Auto;
+      }
+      
+      if(this.rwVal.filter(x => x!=null).length == 0) {
+        // no re-writes
+        return this.dict1Auto;
+      }
+      
+      console.log("there are rewrites")
+      
+      // init
+      var lambda_dict = this.dict1Auto
       
       // convert edges array to associative array
       var edges_keys = lambda_dict.edges.map(lr.edgeDict2dot);
       var edges_dict = createAssociativeArray(edges_keys, lambda_dict.edges)
       
       // pass dict through re-writes
-      console.log("rewrites", this.rwVal)
+      console.log("dict2auto, rewrites", this.rwVal)
       this.rwVal.forEach(rwi => {
         if(rwi == null) return
         
@@ -193,24 +237,30 @@ var app = new Vue({
             // e.g. beta L1 A1
             console.log("beta move", rwi)
             
-            // get nodes
-            var n1 = lambda_dict.nodes.filter(node => node.id==rwi.n1)
-            var n2 = lambda_dict.nodes.filter(node => node.id==rwi.n2)
-            
-            // sanity checks
-            if(n1.length==0) throw ("Node " + rwi.n1 + "not found")
-            if(n2.length==0) throw ("Node " + rwi.n2 + "not found")
-            if(n1.length >1) throw ("Node " + rwi.n1 + "found > 1")
-            if(n2.length >1) throw ("Node " + rwi.n2 + "found > 1")
-
-            // take first element of each array
-            n1 = n1[0]
-            n2 = n2[0]
-            
-            // check types
-            if(n1.type!='L') throw ("1st node for beta is expected to have type L. Got: " + n1.type + "instead")
-            if(n2.type!='A') throw ("2nd node for beta is expected to have type A. Got: " + n2.type + "instead")
-
+            try {
+              // get nodes
+              var n1 = lambda_dict.nodes.filter(node => node.id==rwi.n1)
+              var n2 = lambda_dict.nodes.filter(node => node.id==rwi.n2)
+              
+              // sanity checks
+              if(n1.length==0) throw ("Rewrite error: Node " + rwi.n1 + " not found")
+              if(n2.length==0) throw ("Rewrite error: Node " + rwi.n2 + " not found")
+              if(n1.length >1) throw ("Rewrite error: Node " + rwi.n1 + " found > 1")
+              if(n2.length >1) throw ("Rewrite error: Node " + rwi.n2 + " found > 1")
+  
+              // take first element of each array
+              n1 = n1[0]
+              n2 = n2[0]
+              
+              // check types
+              if(n1.type!='L') throw ("Rewrite error: 1st node for beta is expected to have type L. Got '" + n1.type + "' instead")
+              if(n2.type!='A') throw ("Rewrite error: 2nd node for beta is expected to have type A. Got '" + n2.type + "' instead")
+            } catch (e) {
+              this.error2Msg = e
+              console.error(e)
+              return
+            }
+              
             // identify edges
             var edge_L_in = Object.keys(edges_dict).filter(k => edges_dict[k].to.id==rwi.n1)[0] // there is supposed to be 1 such edge only
             var edge_A_out = Object.keys(edges_dict).filter(k => edges_dict[k].from.id==rwi.n2)[0] // there is supposed to be 1 such edge only
@@ -243,35 +293,59 @@ var app = new Vue({
       // convert edges dict back to array and store in main variable
       lambda_dict.edges = Object.keys(edges_dict).map(k => edges_dict[k])
       
-      // convert to dot
-      try {
-        var lambda_dot = lr.dict2dot_main(lambda_dict)
-        //console.log("lambda dot", lambda_dot)
-      } catch (e) {
-        // statements to handle any exceptions
-        console.error(e);
-        this.errorMsg = e;
-        return
-      }
-
-      // convert to graph
-      var viz = new Viz();
-      var self= this;
-      viz.renderSVGElement(lambda_dot)
+      // return
+      return lambda_dict
+    }
+    
+  },
+  
+  watch: {
+    
+    "dict1Auto": function() {
+      // cannot move this to a vue.js computed
+      // because it returns its value inside a promise
+      var self = this;
+      this.dict2graph(this.dict1Auto)
         .then(function(element) {
-          self.graphOut = element;
+          self.graph1 = element;
         })
         .catch(error => {
           // Create a new Viz instance (@see Caveats page for more info)
           viz = new Viz();
-    
-          // Possibly display the error
+          self.error1Msg = error
           console.error(error);
-          
-          self.graphOut = error;
         });
-      
+    },
+
+    
+    "dict2Auto": function() {
+      // cannot move this to a vue.js computed
+      // because it returns its value inside a promise
+      var self = this;
+      this.dict2graph(this.dict2Auto)
+        .then(function(element) {
+          self.graph2 = element;
+        })
+        .catch(error => {
+          // Create a new Viz instance (@see Caveats page for more info)
+          viz = new Viz();
+          self.error2Msg = error
+          console.error(error);
+        });
     }
 
   }
 })
+
+
+/*
+Vue.config.errorHandler = function (err, vm, info) {
+  // handle error
+  // `info` is a Vue-specific error info, e.g. which lifecycle hook
+  // the error was found in. Only available in 2.2.0+
+  console.log("vuejs error handler")
+  console.log(info)
+  console.error(err)
+  app.error1Msg = err
+}
+*/

@@ -201,6 +201,14 @@
           </span>
         </div>
         
+        <div class="col-md-3">
+          <div v-if="error1Msg">
+            {{error1Msg}}
+          </div>
+  
+          <div v-html="graph1.outerHTML" v-if="!error1Msg">
+          </div>
+        </div>
         
         <div class="col-md-3">
           
@@ -227,7 +235,9 @@
               
             <div v-if="rwFrom == 'custom'">
               <div v-for="item in rwVal" class="row">
-                {{item.k}} {{item.type}} {{item.n1}} {{item.n2}} <button class="btn btn-xs btn-danger" @click="rmRewrite(item.k)">rm</button>
+                <span v-if="item != null">
+                  {{item.type}} {{item.n1}} {{item.n2}} <button class="btn btn-xs btn-danger" @click="rmRewrite(item.k)">rm</button>  
+                </span>
               </div>
               <div class="row">
                 <select v-model="rwNew.type">
@@ -242,12 +252,13 @@
           
         </div>
 
-        
-        <div class="col-md-3" v-if="errorMsg">
-          {{errorMsg}}
-        </div>
-        
-        <div class="col-md-3" v-html="graphOut.outerHTML" v-if="!errorMsg">
+        <div v-if="rwFrom == 'custom'" class="col-md-3">
+          <div v-if="error2Msg">
+            {{error2Msg}}
+          </div>
+          
+          <div v-html="graph2.outerHTML" v-if="!error2Msg">
+          </div>
         </div>
         
       </div>
