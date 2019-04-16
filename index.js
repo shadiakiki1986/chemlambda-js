@@ -304,8 +304,25 @@ var app = new Vue({
     "dict1Auto": function() {
       // cannot move this to a vue.js computed
       // because it returns its value inside a promise
+      if(!this.dict1Auto) return ""
+      
       var self = this;
-      this.dict2graph(this.dict1Auto)
+      var lambda_dict = this.dict1Auto
+      
+      // convert to dot
+      try {
+        var lambda_dot = lr.dict2dot_main(lambda_dict)
+        //console.log("lambda dot", lambda_dot)
+      } catch (e) {
+        // statements to handle any exceptions
+        console.error(e);
+        this.error1Msg = e;
+        return
+      }
+
+      // convert to graph
+      var viz = new Viz();
+      viz.renderSVGElement(lambda_dot)
         .then(function(element) {
           self.graph1 = element;
         })
@@ -321,8 +338,26 @@ var app = new Vue({
     "dict2Auto": function() {
       // cannot move this to a vue.js computed
       // because it returns its value inside a promise
+      
+      if(!this.dict2Auto) return ""
+      
       var self = this;
-      this.dict2graph(this.dict2Auto)
+      var lambda_dict = this.dict2Auto
+      
+      // convert to dot
+      try {
+        var lambda_dot = lr.dict2dot_main(lambda_dict)
+        //console.log("lambda dot", lambda_dot)
+      } catch (e) {
+        // statements to handle any exceptions
+        console.error(e);
+        this.error2Msg = e;
+        return
+      }
+
+      // convert to graph
+      var viz = new Viz();
+      viz.renderSVGElement(lambda_dot)
         .then(function(element) {
           self.graph2 = element;
         })

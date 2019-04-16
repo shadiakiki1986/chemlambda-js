@@ -143,7 +143,7 @@
               <option v-for="item in jsExamplesOpt" :value="item">{{item.title}}</option>
             </select>              
 
-            <button @click="pushJs()" class="btn btn-xs btn-primary" v-if="dotFrom=='lambda' && rwFrom=='none'">
+            <button @click="pushJs()" class="btn btn-xs btn-primary" v-if="dotFrom=='lambda'">
               Plot
             </button>
             
@@ -179,7 +179,7 @@
             </select>
             
 
-            <button @click="pushDot()" class="btn btn-xs btn-primary" v-if="dotFrom=='custom' && rwFrom=='none'">
+            <button @click="pushDot()" class="btn btn-xs btn-primary" v-if="dotFrom=='custom'">
               Plot
             </button>
 
