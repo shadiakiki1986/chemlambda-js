@@ -86,11 +86,12 @@ var app = new Vue({
     "error1Msg": "",
     "error2Msg": "",
     
-    "graph1": "",
-    "graph2": "",
+    "graph1Svg": "",
+    "graph2Svg": "",
     
     "jsExVisible": false,
     "dot1Visible": false,
+    "dot2Visible": false,
     "graph1Visible": true
   },
   
@@ -101,6 +102,8 @@ var app = new Vue({
       this.jsAuto = clone(this.jsExSelected.javascript);
       this.dict1Auto = clone(this.dict1FromJsAuto)
       this.dict2Auto = "" // clone(this.dict1Auto) // without any re-writes
+      this.graph1Visible = true
+      this.graph2Visible = false
     },
     
     pushDot: function() {
@@ -108,6 +111,8 @@ var app = new Vue({
       this.error2Msg = ""
       this.dict1Auto = clone(this.dot1Manual)
       this.dict2Auto = "" // clone(this.dict1Auto) // without any re-writes
+      this.graph1Visible = true
+      this.graph2Visible = false
     },
     
     pushRw: function() {
@@ -121,7 +126,8 @@ var app = new Vue({
       }
       // final step
       this.dict2Auto = clone(this.dict2FromDict1Auto); // with re-writes
-      console.log("finished pushRw")
+      this.graph1Visible = false
+      this.graph2Visible = true
     },
     
     addRewrite: function() {
@@ -260,24 +266,34 @@ var app = new Vue({
               // check types
               if(n1.type!='L') throw ("Rewrite error: 1st node for beta is expected to have type L. Got '" + n1.type + "' instead")
               if(n2.type!='A') throw ("Rewrite error: 2nd node for beta is expected to have type A. Got '" + n2.type + "' instead")
+              
+              // identify edges
+              var edges_labeled = {
+                "L_in": Object.keys(edges_dict).filter(k => edges_dict[k].to.id==rwi.n1),
+                "A_out": Object.keys(edges_dict).filter(k => edges_dict[k].from.id==rwi.n2),
+                "A_in_notL": Object.keys(edges_dict).filter(k => (edges_dict[k].to.id==n2.id)&&(edges_dict[k].from.id!=n1.id)),
+                "L_out_notA": Object.keys(edges_dict).filter(k => (edges_dict[k].from.id==n1.id)&&(edges_dict[k].to.id!=n2.id))
+              }
+              
+              // there is supposed to be 1 such edge of each above
+              Object.keys(edges_labeled).forEach(k => {
+                if(edges_labeled[k].length == 0) throw "Failed to identify edge " + k + ". Found none"
+                if(edges_labeled[k].length  > 1) throw "Failed to identify edge " + k + ". Found > 1"
+                
+                edges_labeled[k] = edges_labeled[k][0]
+              })
             } catch (e) {
               this.error2Msg = e
               console.error(e)
               return
             }
-              
-            // identify edges
-            var edge_L_in = Object.keys(edges_dict).filter(k => edges_dict[k].to.id==rwi.n1)[0] // there is supposed to be 1 such edge only
-            var edge_A_out = Object.keys(edges_dict).filter(k => edges_dict[k].from.id==rwi.n2)[0] // there is supposed to be 1 such edge only
-            var edge_A_in_notL = Object.keys(edges_dict).filter(k => (edges_dict[k].to.id==n2.id)&&(edges_dict[k].from.id!=n1.id))[0] // there is supposed to be 1 such edge only
-            var edge_L_out_notA = Object.keys(edges_dict).filter(k => (edges_dict[k].from.id==n1.id)&&(edges_dict[k].to.id!=n2.id))[0] // there is supposed to be 1 such edge only
             
             // add edges
-            [ {'from': edges_dict[edge_L_in].from, 
-               'to': edges_dict[edge_A_out].to
+            [ {'from': edges_dict[edges_labeled["L_in"]].from, 
+               'to': edges_dict[edges_labeled["A_out"]].to
               },
-              {'from': edges_dict[edge_A_in_notL].from, 
-               'to': edges_dict[edge_L_out_notA].to
+              {'from': edges_dict[edges_labeled["A_in_notL"]].from, 
+               'to': edges_dict[edges_labeled["L_out_notA"]].to
               }
             ].forEach(e => {
               var k = lr.edgeDict2dot(e)
@@ -285,8 +301,9 @@ var app = new Vue({
             })
 
             // delete edges
-            [edge_L_in, edge_A_out, edge_A_in_notL, edge_L_out_notA].forEach(k => {
-              delete edges_dict[k]
+            Object.keys(edges_labeled).forEach(k1 => {
+              var k2 = edges_labeled[k1]
+              delete edges_dict[k2]
             })
 
             break;
@@ -329,7 +346,7 @@ var app = new Vue({
       var viz = new Viz();
       viz.renderSVGElement(lambda_dot)
         .then(function(element) {
-          self.graph1 = element;
+          self.graph1Svg = element;
         })
         .catch(error => {
           // Create a new Viz instance (@see Caveats page for more info)
@@ -364,7 +381,7 @@ var app = new Vue({
       var viz = new Viz();
       viz.renderSVGElement(lambda_dot)
         .then(function(element) {
-          self.graph2 = element;
+          self.graph2Svg = element;
         })
         .catch(error => {
           // Create a new Viz instance (@see Caveats page for more info)

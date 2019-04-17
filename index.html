@@ -25,7 +25,7 @@
   </head>  
   <body>
   
-    <div class="container">
+    <div class="container-fluid">
       
       <!-- Static navbar 
            Copied from https://getbootstrap.com/docs/3.3/examples/navbar/#
@@ -155,12 +155,12 @@
           </div>
           
           <div class="row">
-            <button @click="jsExVisible = !jsExVisible" class="btn btn-xs btn-info">
+            <button @click="jsExVisible = !jsExVisible" class="btn btn-xs btn-info" :disabled="jsExSelected.lambda == 'other'">
               Details
             </button>
           </div>
           
-          <div class="row" v-if="jsExVisible">
+          <div class="row" v-if="jsExVisible || jsExSelected.lambda == 'other'">
             <div v-if="jsExSelected.lambda != 'other'">
               <pre>{{jsExSelected.javascript}}</pre>
             </div>
@@ -173,7 +173,7 @@
           
           <div class="row">
             
-            Graph (initial):
+            Graph (before re-writes):
             
             <select v-model="dotFrom">
               <option value="lambda" selected>From lambda</option>
@@ -217,8 +217,8 @@
               {{error1Msg}}
             </div>
 
-            <button @click="graph1Visible = !graph1Visible" class="btn btn-xs btn-info" :disabled="rwFrom=='none'">
-              Show/hide graph (before re-writes)
+            <button @click="graph1Visible = !graph1Visible" class="btn btn-xs btn-info" :disabled="rwFrom=='none' || !dot2Auto">
+              Graph before/after re-writes
             </button>
   
           </div>
@@ -264,21 +264,37 @@
             </div>
           </div>
 
+          <div class="row">
+            <button @click="dot2Visible = !dot2Visible" class="btn btn-xs btn-info" :disabled="!dot2Auto">
+              Details
+            </button>
+          </div>
+
+          <div class="row" v-if="dot2Visible">
+            <pre>{{dot2Auto}}</pre>
+
+            <span>
+              Copy-paste to <a href="http://viz-js.com/">viz.js</a>
+              and perform graph re-writes there
+            </span>
+
+          </div>
+
           
         </div>
         
         <!-- column 2 for graph before re-writes -->
         <div class="col-md-3" v-if="!error1Msg && (graph1Visible || rwFrom=='none') && !!dot1Auto">
           Graph before re-writes (if any)
-          <div v-html="graph1.outerHTML">
+          <div v-html="graph1Svg.outerHTML">
           </div>
         </div>
         
         <!-- column 3 for graph after re-writes -->
-        <div class="col-md-3" v-if="rwFrom == 'custom' && !!dot2Auto">
+        <div class="col-md-3" v-if="rwFrom == 'custom' && !!dot2Auto && !graph1Visible">
           Graph after re-writes (if any)
           
-          <div v-html="graph2.outerHTML" v-if="!error2Msg">
+          <div v-html="graph2Svg.outerHTML" v-if="!error2Msg">
           </div>
         </div>
         
