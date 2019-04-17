@@ -6,6 +6,8 @@ Version 0.0.5 (2019-04-17)
 * bugfix: nodes FRIN/FROUT/T now have separate IDs
 * enhancement: failed attempt at resizing svg
 * enhancement: change input of re-writes to be textarea instead of custom dropdowns
+* enhancement: example of predecessor(three) now comes with pre-written re-writes
+* feature: allow multiple edges to be added/deleted in re-write
 
 
 Version 0.0.4 (2019-04-1{5,6,7})

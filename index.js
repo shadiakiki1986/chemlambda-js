@@ -42,7 +42,10 @@ var jsExamplesOpt = [
         var three = f2 => x2 => f2(f2(f2(x2)))
       
         return PRED(three)
-      }`
+      }`,
+      "rewrites": `beta L6 A8
+      beta L8 A2
+      beta L7 A3`
   },
   {"title": "other", "lambda": "other", "javascript": ""}
 ]; 
@@ -105,6 +108,13 @@ var app = new Vue({
       this.dict2Auto = "" // clone(this.dict1Auto) // without any re-writes
       this.graph1Visible = true
       this.graph2Visible = false
+      if("rewrites" in this.jsExSelected)  {
+        this.rwTxt = this.jsExSelected.rewrites
+        this.rwFrom = 'custom'
+      } else {
+        this.rwTxt = ""
+        this.rwFrom = 'none'
+      }
     },
     
     pushDot: function() {
@@ -257,16 +267,6 @@ var app = new Vue({
                 "L_out_notA": Object.keys(edges_dict).filter(k => (edges_dict[k].from.id==n1.id)&&(edges_dict[k].to.id!=n2.id))
               }
               
-              // there is supposed to be 1 such edge of each above
-              Object.keys(edges_labeled).forEach(k => {
-                if(edges_labeled[k].length == 0) throw "Failed to identify edge " + k + ". Found none"
-                if(edges_labeled[k].length  > 1) {
-                  console.error("edges > 1. Details: ", edges_labeled[k])
-                  throw "Failed to identify edge " + k + ". Found > 1"
-                }
-                
-                edges_labeled[k] = edges_labeled[k][0]
-              })
             } catch (e) {
               this.error2Msg = e
               console.error(e)
@@ -274,21 +274,36 @@ var app = new Vue({
             }
             
             // add edges
-            [ {'from': edges_dict[edges_labeled["L_in"]].from, 
-               'to': edges_dict[edges_labeled["A_out"]].to
-              },
-              {'from': edges_dict[edges_labeled["A_in_notL"]].from, 
-               'to': edges_dict[edges_labeled["L_out_notA"]].to
-              }
-            ].forEach(e => {
+            [ 
+              edges_labeled["L_in"].map(L_in => {
+                return edges_labeled["A_out"].map(A_out => {
+                  return {
+                    'from': edges_dict[L_in].from, 
+                    'to': edges_dict[A_out].to
+                  }
+                })
+              }).reduce((a,b)=>a.concat(b)),
+
+              
+              edges_labeled["A_in_notL"].map(A_in_notL => {
+                return edges_labeled["L_out_notA"].map(L_out_notA => {
+                  return {
+                    'from': edges_dict[A_in_notL].from, 
+                    'to': edges_dict[L_out_notA].to
+                  }
+                })
+              }).reduce((a,b)=>a.concat(b))
+              
+            ].reduce((a,b)=>a.concat(b)).forEach(e => {
               var k = lr.edgeDict2dot(e)
               edges_dict[k] = e
             })
 
             // delete edges
             Object.keys(edges_labeled).forEach(k1 => {
-              var k2 = edges_labeled[k1]
-              delete edges_dict[k2]
+              edges_labeled[k1].map(k2 => {
+                delete edges_dict[k2]
+              })
             })
 
             break;
@@ -305,7 +320,7 @@ var app = new Vue({
     },
     
     "rwVal": function() {
-      return this.rwTxt.split("\n").map(l => {
+      return this.rwTxt.split("\n").map(l => l.trim()).filter(l => !!l).map(l => {
         var row = l.split(" ")
         return {'type': row[0], 'n1': row[1], 'n2': row[2]}
       })
