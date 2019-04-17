@@ -44,8 +44,8 @@ var jsExamplesOpt = [
         return PRED(three)
       }`,
       "rewrites": `beta L6 A8
-      beta L8 A2
-      beta L7 A3`
+beta L8 A2
+beta L7 A3`
   },
   {"title": "other", "lambda": "other", "javascript": ""}
 ]; 
