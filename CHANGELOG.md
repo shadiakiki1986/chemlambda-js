@@ -1,4 +1,4 @@
-Version 0.0.4 (2019-04-15)
+Version 0.0.4 (2019-04-1{5,6,7})
 
 * feature: use bootstrap css
 * feature: convert to vue.js app
