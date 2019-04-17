@@ -74,7 +74,7 @@ function clone(assArray) {
 var app = new Vue({
   el: '#app',
   data: {
-    "dotFrom": "lambda",
+    "dot1From": "lambda",
     "rwFrom": "none",
 
     "jsExamplesOpt": jsExamplesOpt,
@@ -94,8 +94,6 @@ var app = new Vue({
     "graph2Svg": "",
     
     "jsExVisible": false,
-    "dot1Visible": false,
-    "dot2Visible": false,
     "graph1Visible": true,
     
     "extendedLabels": true
@@ -107,9 +105,10 @@ var app = new Vue({
       this.error2Msg = ""
       this.jsAuto = clone(this.jsExSelected.javascript);
       this.dict1Auto = clone(this.dict1FromJsAuto)
-      this.dict2Auto = "" // clone(this.dict1Auto) // without any re-writes
+
       this.graph1Visible = true
       this.graph2Visible = false
+      
       if("rewrites" in this.jsExSelected)  {
         this.rwTxt = this.jsExSelected.rewrites
         this.rwFrom = 'custom'
@@ -117,26 +116,48 @@ var app = new Vue({
         this.rwTxt = ""
         this.rwFrom = 'none'
       }
+      
+      this.dict2Auto = "" // clone(this.dict1Auto) // without any re-writes
     },
     
     pushDot: function() {
       this.error1Msg = ""
       this.error2Msg = ""
       this.dict1Auto = clone(this.dot1Manual)
-      this.dict2Auto = "" // clone(this.dict1Auto) // without any re-writes
+      
       this.graph1Visible = true
       this.graph2Visible = false
+      
+      if("rewrites" in this.jsExSelected)  {
+        this.rwTxt = this.jsExSelected.rewrites
+        this.rwFrom = 'custom'
+      } else {
+        this.rwTxt = ""
+        this.rwFrom = 'none'
+      }
+      
+      this.dict2Auto = "" // clone(this.dict1Auto) // without any re-writes
     },
     
     pushRw: function() {
       this.error1Msg = ""
       this.error2Msg = ""
-      if(this.dotFrom=='lambda') {
+      if(this.dot1From=='lambda') {
         this.jsAuto = clone(this.jsExSelected.javascript);
         this.dict1Auto = clone(this.dict1FromJsAuto)
       } else {
         this.dict1Auto = clone(this.dot1Manual)
       }
+      
+      // get re-writes
+      if("rewrites" in this.jsExSelected)  {
+        this.rwTxt = this.jsExSelected.rewrites
+        this.rwFrom = 'custom'
+      } else {
+        this.rwTxt = ""
+        this.rwFrom = 'none'
+      }
+
       // final step
       this.dict2Auto = clone(this.dict2FromDict1Auto); // with re-writes
       this.graph1Visible = false

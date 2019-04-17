@@ -1,3 +1,8 @@
+Version 0.0.6 (2019-04-17)
+
+* enhancement: aesthetics
+
+
 Version 0.0.5 (2019-04-17)
 
 * bugfix: FRIN to be on input

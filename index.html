@@ -8,7 +8,22 @@
     <title>chemlambda-js</title>
     
     <!-- getbootstrap.com Latest compiled and minified CSS -->
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous"> -->
+    
+    <!-- including integrity 
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+    -->
+
+    <!-- without integrity attribute -->
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" crossorigin="anonymous"></script>
+    
+    <!-- not compatible with 4.3.1 -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" crossorigin="anonymous">
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" crossorigin="anonymous"></script>
   
     <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/esprima/2.7.3/esprima.min.js"></script> -->
     <script src="https://unpkg.com/esprima@~4.0/dist/esprima.js"></script>
@@ -46,6 +61,9 @@
   </head>  
   <body>
   
+         
+
+  
     <div class="container-fluid">
       
       <!-- Static navbar 
@@ -77,7 +95,7 @@
         </div><!--/.container-fluid -->
       </nav>
 
-            
+ 
       <h3>
         Lambda calculus plotter
       </h3>
@@ -154,42 +172,94 @@
       
       <div class="row" id="app">
         
+        <!-- Modal -->
+        <div class="modal fade" id="dot1Modal"  role="dialog" aria-labelledby="dot1 Modal" aria-hidden="true">
+          <div class="modal-dialog" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalCenterTitle">Graph dot script before re-writes</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <div class="modal-body">
+                <pre>{{dot1Auto}}</pre>
+                
+                <span>
+                  Copy-paste to <a href="http://viz-js.com/">viz.js</a>
+                  for experimentation
+                </span>
+                
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+              </div>
+            </div>
+          </div>
+        </div>
+          
+        <!-- Modal -->
+        <div class="modal fade" id="dot2Modal"  role="dialog" aria-labelledby="dot2 Modal" aria-hidden="true">
+          <div class="modal-dialog" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalCenterTitle">Graph dot script after re-writes</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <div class="modal-body">
+                <pre>{{dot2Auto}}</pre>
+                
+                <span>
+                  Copy-paste to <a href="http://viz-js.com/">viz.js</a>
+                  for experimentation
+                </span>
+
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+              </div>
+            </div>
+          </div>
+        </div>
+          
         <!-- column 1 for user input -->
-        <div class="col-md-3" v-if="dotFrom == 'lambda'">
+        <div class="col-md-4">
 
           <div class="row">
             Extended labels:
             <input type="checkbox" v-model="extendedLabels" />
           </div>
           
-          <div class="row">
+          <div class="row" v-if="dot1From == 'lambda'">
             Lambda term:
             
             <select id="jsExamples" v-model="jsExSelected"> <!-- @change="jsExOnChange($event)"> -->
               <option v-for="item in jsExamplesOpt" :value="item">{{item.title}}</option>
             </select>              
 
-            <button @click="pushJs()" class="btn btn-xs btn-primary" v-if="dotFrom=='lambda'">
+<!--
+            <button @click="pushJs()" class="btn btn-xs btn-primary" v-if="dot1From=='lambda'">
               Plot
-            </button>
-          </div>
+            </button>-->
 
-          <div class="row">
-            {{jsExSelected.lambda}}
-          </div>
-          
-          <div class="row">
             <button @click="jsExVisible = !jsExVisible" class="btn btn-xs btn-info" :disabled="jsExSelected.lambda == 'other'">
               Details
             </button>
           </div>
           
           <div class="row" v-if="jsExVisible || jsExSelected.lambda == 'other'">
-            <div v-if="jsExSelected.lambda != 'other'">
+            
+            <div class="row">
+              {{jsExSelected.lambda}}
+            </div>
+            
+            <div v-if="jsExSelected.lambda != 'other'" class="row">
               <pre>{{jsExSelected.javascript}}</pre>
             </div>
             
-            <div v-if="jsExSelected.lambda == 'other'">
+            <div v-if="jsExSelected.lambda == 'other'" class="row">
               <textarea placeholder="Enter javascript function here" v-model="jsExSelected.javascript" ></textarea>
             </div>
           </div>
@@ -199,38 +269,25 @@
             
             Graph (before re-writes):
             
-            <select v-model="dotFrom">
+            <select v-model="dot1From">
               <option value="lambda" selected>From lambda</option>
               <option value="custom">Custom</option>
             </select>
             
 
-            <button @click="pushDot()" class="btn btn-xs btn-primary" v-if="dotFrom=='custom'">
+            <button @click="pushDot()" class="btn btn-xs btn-primary" v-if="dot1From=='custom'">
               Plot
             </button>
 
           </div>
 
-          <div class="row">
-            <button @click="dot1Visible = !dot1Visible" class="btn btn-xs btn-info">
-              Details
-            </button>
-          </div>
+          <div class="row" v-if="dot1From == 'custom'">
+            <textarea v-model="dot1Manual" ></textarea> <!-- onchange="dotChange()" -->
 
-          <div class="row" v-if="dot1Visible">
-            <div v-if="dotFrom == 'lambda'">
-              <pre>{{dot1Auto}}</pre>
-            </div>
-              
-            <div v-if="dotFrom == 'custom'">
-              <textarea v-model="dot1Manual" ></textarea> <!-- onchange="dotChange()" -->
-            </div>
-          
             <span>
               Copy-paste to <a href="http://viz-js.com/">viz.js</a>
               and perform graph re-writes there
             </span>
-
           </div>
 
           <div class="row">
@@ -241,10 +298,6 @@
               {{error1Msg}}
             </div>
 
-            <button @click="graph1Visible = !graph1Visible" class="btn btn-xs btn-info" :disabled="rwFrom=='none' || !dot2Auto">
-              Graph before/after re-writes
-            </button>
-  
           </div>
 
           
@@ -258,7 +311,7 @@
             </select>
             
 
-            <button @click="pushRw()" class="btn btn-xs btn-primary" v-if="rwFrom!='none'">
+            <button @click="pushRw()" class="btn btn-xs btn-primary"><!-- v-if="rwFrom!='none'"> -->
               Plot
             </button>
 
@@ -282,36 +335,45 @@
             </div>
           </div>
 
-          <div class="row">
-            <button @click="dot2Visible = !dot2Visible" class="btn btn-xs btn-info" :disabled="!dot2Auto">
-              Details
-            </button>
-          </div>
-
-          <div class="row" v-if="dot2Visible">
-            <pre>{{dot2Auto}}</pre>
-
-            <span>
-              Copy-paste to <a href="http://viz-js.com/">viz.js</a>
-              and perform graph re-writes there
-            </span>
-
-          </div>
 
           
         </div>
+   
+
         
         <!-- column 2 for graph before re-writes -->
-        <div class="col-md-3" v-if="!error1Msg && (graph1Visible || rwFrom=='none') && !!dot1Auto">
-          Graph before re-writes (if any)
+        <div class="col-md-8" v-if="!error1Msg && (graph1Visible || rwFrom=='none') && !!dot1Auto">
+          Graph 
+          
+          <button @click="graph1Visible = !graph1Visible" class="btn btn-xs btn-info" :disabled="rwFrom=='none' || !dot2Auto">
+            before
+          </button>
+
+          re-writes
+          
+          <!-- Button trigger modal -->
+          <button type="button" class="btn btn-xs btn-primary" data-toggle="modal" data-target="#dot1Modal">
+            Dot script
+          </button>
+
           <div v-html="graph1Svg.outerHTML">
           </div>
+          
         </div>
         
         <!-- column 3 for graph after re-writes -->
-        <div class="col-md-3" v-if="rwFrom == 'custom' && !!dot2Auto && !graph1Visible">
-          Graph after re-writes (if any)
+        <div class="col-md-8" v-if="rwFrom == 'custom' && !!dot2Auto && !graph1Visible">
+          Graph
+          <button @click="graph1Visible = !graph1Visible" class="btn btn-xs btn-info" :disabled="rwFrom=='none' || !dot2Auto">
+            after
+          </button>
+          re-writes
           
+          <!-- Button trigger modal -->
+          <button type="button" class="btn btn-xs btn-primary" data-toggle="modal" data-target="#dot2Modal">
+            Dot script
+          </button>
+
           <div v-html="graph2Svg.outerHTML" v-if="!error2Msg">
           </div>
         </div>
