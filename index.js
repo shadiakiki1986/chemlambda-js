@@ -218,21 +218,22 @@ var app = new Vue({
     "dict2FromDict1Auto": function() {
       // compute new graph from re-writes (rwVal)
       console.log("re-calculuate dict2fromdict1auto", this.rwVal)
+
+      // init
+      var lambda_dict = clone(this.dict1Auto)
       
       if(this.rwFrom=='none') {
         // no re-writes
-        return this.dict1Auto;
+        return lambda_dict;
       }
       
       if(this.rwVal.filter(x => x!=null).length == 0) {
         // no re-writes
-        return this.dict1Auto;
+        return lambda_dict;
       }
       
       console.log("there are rewrites")
       
-      // init
-      var lambda_dict = this.dict1Auto
       
       // convert edges array to associative array
       var edges_keys = lambda_dict.edges.map(lr.edgeDict2dot);
