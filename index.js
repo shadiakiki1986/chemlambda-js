@@ -78,8 +78,7 @@ var app = new Vue({
     "jsExSelected": jsExamplesOpt[0],
     
     "dot1Manual": "",
-    "rwNew": {"type": "", "n1": "", "n2": ""},
-    "rwVal": [],
+    "rwTxt": "",
 
     "jsAuto": "",
     "dict1Auto": "",
@@ -130,26 +129,6 @@ var app = new Vue({
       this.dict2Auto = clone(this.dict2FromDict1Auto); // with re-writes
       this.graph1Visible = false
       this.graph2Visible = true
-    },
-    
-    addRewrite: function() {
-      var k = this.rwVal.length
-      // https://vuejs.org/v2/guide/list.html#Caveats
-      this.rwVal.push({
-          "k": k,
-          "type": this.rwNew.type,
-          "n1": this.rwNew.n1,
-          "n2": this.rwNew.n2
-        })
-      this.rwNew = {"type": "", "n1": "", "n2": ""}
-    },
-    
-    rmRewrite: function(k) {
-      // set null instead of delete to maintain key from length
-
-      // https://vuejs.org/v2/guide/list.html#Caveats
-      // this.rwVal[k] = null
-      Vue.set(this.rwVal, k, null)
     },
     
     dict2graph: function(lambda_dict) {
@@ -323,6 +302,13 @@ var app = new Vue({
       
       // return
       return lambda_dict
+    },
+    
+    "rwVal": function() {
+      return this.rwTxt.split("\n").map(l => {
+        var row = l.split(" ")
+        return {'type': row[0], 'n1': row[1], 'n2': row[2]}
+      })
     }
     
   },

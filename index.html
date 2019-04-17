@@ -269,19 +269,7 @@
 
           <div class="row">
             <div v-if="rwFrom == 'custom'">
-              <div v-for="item in rwVal" class="row">
-                <span v-if="item != null">
-                  {{item.type}} {{item.n1}} {{item.n2}} <button class="btn btn-xs btn-danger" @click="rmRewrite(item.k)">rm</button>  
-                </span>
-              </div>
-              <div class="row">
-                <select v-model="rwNew.type">
-                  <option value="beta">beta</option>
-                </select>
-                <input type="text" v-model="rwNew.n1" placeholder="n1" size="3" />
-                <input type="text" v-model="rwNew.n2" placeholder="n2" size="3" />
-                <button class="btn btn-xs btn-info" @click="addRewrite()">Add</button>
-              </div>
+              <textarea v-model="rwTxt"></textarea>
             </div>
           </div>
 
