@@ -3,14 +3,20 @@
 
   <head>
     <meta charset="utf-8"/>
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
     <title>chemlambda-js</title>
     
     <!-- getbootstrap.com Latest compiled and minified CSS -->
     <!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous"> -->
     
     <!-- including integrity 
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    -->
+    
+    <!-- not compatible with 4.3.1, but with 3.3.7 -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" crossorigin="anonymous">
+  
+   <!-- including integrity 
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
@@ -20,11 +26,8 @@
     <!-- without integrity attribute -->
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" crossorigin="anonymous"></script>
-    
-    <!-- not compatible with 4.3.1 -->
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" crossorigin="anonymous">
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" crossorigin="anonymous"></script>
-  
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" crossorigin="anonymous"></script>
+
     <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/esprima/2.7.3/esprima.min.js"></script> -->
     <script src="https://unpkg.com/esprima@~4.0/dist/esprima.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/viz.js/2.1.2/viz.js"></script>
@@ -65,34 +68,49 @@
 
   
     <div id="app" class="container-fluid">
+
+      <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="#">chemlambda-js</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
       
-      <!-- Static navbar 
-           Copied from https://getbootstrap.com/docs/3.3/examples/navbar/#
-      -->
-      <nav class="navbar navbar-default">
-        <div class="container-fluid">
-          <div class="navbar-header">
-            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
-              <span class="sr-only">Toggle navigation</span>
-              <span class="icon-bar"></span>
-              <span class="icon-bar"></span>
-              <span class="icon-bar"></span>
-            </button>
-            <a class="navbar-brand" href="#">chemlambda-js</a>
-          </div>
-          <div id="navbar" class="navbar-collapse collapse">
-            <ul class="nav navbar-nav">
-              <li class="active">
-                <!--<button id="plot" onclick="updateGraph()">
-                  Plot
-                </button>-->
-              </li>
-            </ul>
-            <ul class="nav navbar-nav navbar-right">
-              <li class="active"><a href="https://github.com/shadiakiki1986/chemlambda-js">source <span class="sr-only">(current)</span></a></li>
-            </ul>
-          </div><!--/.nav-collapse -->
-        </div><!--/.container-fluid -->
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+          <ul class="navbar-nav mr-auto">
+            <li class="nav-item active">
+              <!-- <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a> -->
+              <a class="nav-link btn btn-primary btn-sm" @click="pushRw()" href="#">
+                <span class="badge badge-secondary">&gt;</span> &nbsp; Run
+              </a>
+            </li>
+            
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                Examples
+              </a>
+              <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                <a class="dropdown-item" href="#">
+                  <select id="jsExamples" v-model="jsExSelected"> <!-- @change="jsExOnChange($event)"> -->
+                    <option v-for="item in jsExamplesOpt" :value="item">{{item.title}}</option>
+                  </select>        
+                </a>
+              </div>
+            </li>
+
+            <li class="nav-item">
+              <a class="nav-link" href="https://github.com/shadiakiki1986/chemlambda-js">
+                <svg class="octicon octicon-mark-github v-align-middle" height="32" viewBox="0 0 16 16" version="1.1" width="32" aria-hidden="true">
+                  <path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z"></path>
+                </svg>
+              </a>
+            </li>
+
+          </ul>
+          <form class="form-inline my-2 my-lg-0">
+            <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search">
+            <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
+          </form>
+        </div>
       </nav>
 
  
@@ -224,72 +242,48 @@
       </div>
         
       <!-- column 1 for user input -->
-      <div class="col-md-4">
+      <div class="col-md-3">
 
-        <div class="row">
+        <div>
           Extended labels:
           <input type="checkbox" v-model="extendedLabels" />
         </div>
         
-        <div class="row" v-if="dot1From == 'lambda'">
-          Lambda term:
-          
-          <select id="jsExamples" v-model="jsExSelected"> <!-- @change="jsExOnChange($event)"> -->
-            <option v-for="item in jsExamplesOpt" :value="item">{{item.title}}</option>
-          </select>              
-
-<!--
-          <button @click="pushJs()" class="btn btn-xs btn-primary" v-if="dot1From=='lambda'">
-            Plot
-          </button>-->
-
-          <button @click="jsExVisible = !jsExVisible" class="btn btn-xs btn-info" :disabled="jsExSelected.lambda == 'other'">
-            Details
-          </button>
-        </div>
-        
-        <div class="row" v-if="jsExVisible || jsExSelected.lambda == 'other'">
-          
-          <div class="row">
-            {{jsExSelected.lambda}}
-          </div>
-          
-          <div v-if="jsExSelected.lambda != 'other'" class="row">
-            <pre>{{jsExSelected.javascript}}</pre>
-          </div>
-          
-          <div v-if="jsExSelected.lambda == 'other'" class="row">
-            <textarea placeholder="Enter javascript function here" v-model="jsExSelected.javascript" ></textarea>
-          </div>
-        </div>
-        
-        
-        <div class="row">
-          
-          Graph (before re-writes):
+        <div>
+          Graph from:
           
           <select v-model="dot1From">
-            <option value="lambda" selected>From lambda</option>
-            <option value="custom">Custom</option>
+            <option value="lambda" selected>Lambda terms</option>
+            <option value="custom">Custom graph</option>
           </select>
+        </div>
           
+        <div>
+          
+          <div class="col-sm-12" v-if="dot1From == 'lambda'">
+            <div class="row">
+              {{jsExSelected.lambda}}
+            </div>
+            
+            <div class="row">
+              <textarea placeholder="Enter javascript function here" v-model="jsExSelected.javascript" ></textarea>
+            </div>
+          </div>
 
-          <button @click="pushDot()" class="btn btn-xs btn-primary" v-if="dot1From=='custom'">
-            Plot
-          </button>
 
+          <div class="col-sm-12" v-if="dot1From == 'custom'">
+            <textarea v-model="dot1Manual" ></textarea> <!-- onchange="dotChange()" -->
+  
+            <span>
+              Copy-paste to <a href="http://viz-js.com/">viz.js</a>
+              and perform graph re-writes there
+            </span>
+          </div>
+          
         </div>
+        
 
-        <div class="row" v-if="dot1From == 'custom'">
-          <textarea v-model="dot1Manual" ></textarea> <!-- onchange="dotChange()" -->
-
-          <span>
-            Copy-paste to <a href="http://viz-js.com/">viz.js</a>
-            and perform graph re-writes there
-          </span>
-        </div>
-
-        <div class="row">
+        <div>
           
           <div v-if="error1Msg" class="alert alert-danger">
             Error in graph before re-writes:
@@ -300,38 +294,26 @@
         </div>
 
         
-        <div class="row">
+        <div>
           
           Re-writes:
           
-          <select v-model="rwFrom">
-            <option value="none" selected>None</option>
-            <option value="custom">Custom</option>
-          </select>
-          
-
-          <button @click="pushRw()" class="btn btn-xs btn-primary"><!-- v-if="rwFrom!='none'"> -->
-            Plot
-          </button>
-
           <div v-if="error2Msg" class="alert alert-danger">
             Error in graph after re-writes:
             <br/>
             {{error2Msg}}
           </div>
 
-        </div>
+          Syntax for re-writes
+          
+          <pre>
+            beta node1 node2
+            beta node3 node4
+            ...
+          </pre>
+          
+          <textarea v-model="rwTxt"></textarea>
 
-        <div class="row">
-          <div v-if="rwFrom == 'custom'">
-            Syntax for re-writes
-            <pre>
-              beta node1 node2
-              beta node3 node4
-              ...
-            </pre>
-            <textarea v-model="rwTxt"></textarea>
-          </div>
         </div>
 
 
@@ -340,51 +322,57 @@
  
 
       
-      <!-- column 2 for graph before re-writes -->
-      <div class="col-md-8" v-if="!error1Msg && (graph1Visible || rwFrom=='none') && !!dot1Auto">
-        Graph 
+      <!-- column 2 for graph before/after re-writes -->
+      <div class="col-md-8">
+        ...
         
-        <button @click="graph1Visible = !graph1Visible" class="btn btn-xs btn-info" :disabled="rwFrom=='none' || !dot2Auto">
-          before
-        </button>
-
-        re-writes
+        <div v-if="!error1Msg && (graph1Visible || rwVal.length==0) && !!dot1Auto">
+          Graph 
+          
+          <button @click="graph1Visible = !graph1Visible" class="btn btn-sm btn-info" :disabled="rwVal.length==0 || !dot2Auto">
+            before
+          </button>
+  
+          re-writes
+          
+          <!-- Button trigger modal -->
+          <button type="button" class="btn btn-sm btn-primary" data-toggle="modal" data-target="#dot1Modal">
+            Dot script
+          </button>
+  
+          <div v-html="graph1Svg.outerHTML">
+          </div>
+        </div>
         
-        <!-- Button trigger modal -->
-        <button type="button" class="btn btn-xs btn-primary" data-toggle="modal" data-target="#dot1Modal">
-          Dot script
-        </button>
-
-        <div v-html="graph1Svg.outerHTML">
+        <div v-if="rwVal.length > 0 && !!dot2Auto && !graph1Visible">
+          Graph
+          <button @click="graph1Visible = !graph1Visible" class="btn btn-sm btn-info" :disabled="rwVal.length==0 || !dot2Auto">
+            after
+          </button>
+          re-writes
+          
+          <!-- Button trigger modal -->
+          <button type="button" class="btn btn-sm btn-primary" data-toggle="modal" data-target="#dot2Modal">
+            Dot script
+          </button>
+  
+          <div v-html="graph2Svg.outerHTML" v-if="!error2Msg">
+          </div>
         </div>
         
       </div>
-      
-      <!-- column 3 for graph after re-writes -->
-      <div class="col-md-8" v-if="rwFrom == 'custom' && !!dot2Auto && !graph1Visible">
-        Graph
-        <button @click="graph1Visible = !graph1Visible" class="btn btn-xs btn-info" :disabled="rwFrom=='none' || !dot2Auto">
-          after
-        </button>
-        re-writes
         
-        <!-- Button trigger modal -->
-        <button type="button" class="btn btn-xs btn-primary" data-toggle="modal" data-target="#dot2Modal">
-          Dot script
-        </button>
 
-        <div v-html="graph2Svg.outerHTML" v-if="!error2Msg">
+      <footer class="footer mt-auto py-3">
+        <div class="container">
+          <span class="text-muted">
+            Found a bug? File an issue on <a href="https://github.com/shadiakiki1986/chemlambda-js">github</a>
+          </span>
         </div>
-      </div>
-        
-
-      <div>
-        Found a bug? File an issue on <a href="https://github.com/shadiakiki1986/chemlambda-js">github</a>
-      </div>
-
-    </div> <!-- end main container of page -->
-
+      </footer>
     
+    </div> <!-- end main container of page -->
+  
     <script src="LambdaTerms.js"></script>
     <script src="LambdaReader.js"></script>
     <script src="index.js"></script>

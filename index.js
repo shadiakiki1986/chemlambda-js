@@ -75,7 +75,6 @@ var app = new Vue({
   el: '#app',
   data: {
     "dot1From": "lambda",
-    "rwFrom": "none",
 
     "jsExamplesOpt": jsExamplesOpt,
     "jsExSelected": jsExamplesOpt[0],
@@ -93,7 +92,6 @@ var app = new Vue({
     "graph1Svg": "",
     "graph2Svg": "",
     
-    "jsExVisible": false,
     "graph1Visible": true,
     
     "extendedLabels": true
@@ -111,10 +109,8 @@ var app = new Vue({
       
       if("rewrites" in this.jsExSelected)  {
         this.rwTxt = this.jsExSelected.rewrites
-        this.rwFrom = 'custom'
       } else {
         this.rwTxt = ""
-        this.rwFrom = 'none'
       }
       
       this.dict2Auto = "" // clone(this.dict1Auto) // without any re-writes
@@ -130,10 +126,8 @@ var app = new Vue({
       
       if("rewrites" in this.jsExSelected)  {
         this.rwTxt = this.jsExSelected.rewrites
-        this.rwFrom = 'custom'
       } else {
         this.rwTxt = ""
-        this.rwFrom = 'none'
       }
       
       this.dict2Auto = "" // clone(this.dict1Auto) // without any re-writes
@@ -152,10 +146,8 @@ var app = new Vue({
       // get re-writes
       if("rewrites" in this.jsExSelected)  {
         this.rwTxt = this.jsExSelected.rewrites
-        this.rwFrom = 'custom'
       } else {
         this.rwTxt = ""
-        this.rwFrom = 'none'
       }
 
       // final step
@@ -216,7 +208,7 @@ var app = new Vue({
       // init
       var lambda_dict = clone(this.dict1Auto)
       
-      if(this.rwFrom=='none') {
+      if(this.rwVal.length==0) {
         // no re-writes
         return lambda_dict;
       }
