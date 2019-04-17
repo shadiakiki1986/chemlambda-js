@@ -352,6 +352,18 @@ var app = new Vue({
       var viz = new Viz();
       viz.renderSVGElement(lambda_dot)
         .then(function(element) {
+          /*
+          // for responsive SVG https://stackoverflow.com/a/25978286
+          element.preserveAspectRatio = "xMinYMin meet"
+          element.viewBox = "0 0 600 400"
+          element.classList.add("svg-content-responsive");
+          element.setAttribute("height", "");
+          element.setAttribute("width", "");
+
+          console.log("svg element", element)
+          */
+
+          // return
           self.graph1Svg = element;
         })
         .catch(error => {

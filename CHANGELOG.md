@@ -4,6 +4,7 @@ Version 0.0.5 (2019-04-17)
 * enhancement: add an example
 * bugfix: node T is now included
 * bugfix: nodes FRIN/FROUT/T now have separate IDs
+* enhancement: failed attempt at resizing svg
 
 
 Version 0.0.4 (2019-04-1{5,6,7})
