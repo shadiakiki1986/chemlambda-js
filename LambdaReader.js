@@ -401,15 +401,21 @@ function LambdaReader() {
     //------------------------------------------------------------
     
     // utility function to convert dict to dot file row, nodes section
-    function dict2dot_nodes(row) {
+    function dict2dot_nodes(row, extendedLabels) {
       switch (row.type) {
         case "L":
+          if(!extendedLabels) {
+            return (row.id + ' [label="<lo> l | { <mi> m | ' + row.id + '} | <ro> r"];')
+          }
           return (row.id + ' [label="<lo> ' +
             row.l + ' | { <mi> ' +
             row.m + ' | ' +
             row.id + '} | <ro> ' +
             row.r + '"];')
         case "A":
+          if(!extendedLabels) {
+            return (row.id + ' [label="<li> l | { ' + row.id + ' | <mo> m } | <ri> r"];')
+          }
           return (row.id + ' [label="<li> ' +
             row.l + ' | { ' +
             row.id + ' | <mo> ' +
@@ -449,32 +455,34 @@ function LambdaReader() {
     
     
     // convert dict to dot
-    this.dict2dot_main = function(o_dict) {
-        // utility variables for convert dict to dot
-        var dot_header_all = `
-          digraph G {
-          rankdir = TB;
-        `
-        var dot_header_l = `
-          // defaults for L
-          node [shape=record, color=red, style=filled]; 
-        `
-        var dot_header_a = `
-          // defaults for A
-          node [shape=record, color=green, style=filled]; 
-        `
-        var dot_header_other = `
-          // other nodes, e.g. T, FROUT, FRIN
-          node [shape=record, color=blue, style=filled]; 
-          //T [ shape=point, color=black, style=filled ]
-          //FRIN [ style=filled, color=blue ]
-          //FROUT [ style=filled, color=blue ]
+    this.dict2dot_main = function(o_dict, extendedLabels) {
+      console.log("dict2dot_main", extendedLabels)
+      
+      // utility variables for convert dict to dot
+      var dot_header_all = `
+        digraph G {
+        rankdir = TB;
+      `
+      var dot_header_l = `
+        // defaults for L
+        node [shape=record, color=red, style=filled]; 
+      `
+      var dot_header_a = `
+        // defaults for A
+        node [shape=record, color=green, style=filled]; 
+      `
+      var dot_header_other = `
+        // other nodes, e.g. T, FROUT, FRIN
+        node [shape=record, color=blue, style=filled]; 
+        //T [ shape=point, color=black, style=filled ]
+        //FRIN [ style=filled, color=blue ]
+        //FROUT [ style=filled, color=blue ]
         `
         
       // reduce list to dot file
       //console.log("program", o)
-      var o_nodes_L = o_dict.nodes.filter(b => (b.type == "L")).map(b => dict2dot_nodes(b)).reduce((a, b) => a + "\n" + b, "")
-      var o_nodes_A = o_dict.nodes.filter(b => (b.type == "A")).map(b => dict2dot_nodes(b)).reduce((a, b) => a + "\n" + b, "")
+      var o_nodes_L = o_dict.nodes.filter(b => (b.type == "L")).map(b => dict2dot_nodes(b, extendedLabels)).reduce((a, b) => a + "\n" + b, "")
+      var o_nodes_A = o_dict.nodes.filter(b => (b.type == "A")).map(b => dict2dot_nodes(b, extendedLabels)).reduce((a, b) => a + "\n" + b, "")
       var o_edges_s = o_dict.edges.map(this.edgeDict2dot).reduce((a, b) => a + "\n" + b, "")
     
       return (

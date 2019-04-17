@@ -96,7 +96,9 @@ var app = new Vue({
     "jsExVisible": false,
     "dot1Visible": false,
     "dot2Visible": false,
-    "graph1Visible": true
+    "graph1Visible": true,
+    
+    "extendedLabels": true
   },
   
   methods: {
@@ -139,26 +141,6 @@ var app = new Vue({
       this.dict2Auto = clone(this.dict2FromDict1Auto); // with re-writes
       this.graph1Visible = false
       this.graph2Visible = true
-    },
-    
-    dict2graph: function(lambda_dict) {
-
-      // convert to dot
-      try {
-        
-        var lambda_dot = lr.dict2dot_main(lambda_dict)
-        //console.log("lambda dot", lambda_dot)
-      } catch (e) {
-        // statements to handle any exceptions
-        console.error(e);
-        this.error1Msg = e;
-        return
-      }
-
-      // convert to graph
-      var viz = new Viz();
-      return viz.renderSVGElement(lambda_dot);
-
     }
     
   },
@@ -168,12 +150,12 @@ var app = new Vue({
     
     "dot1Auto": function() {
       if(!this.dict1Auto) return ""
-      return lr.dict2dot_main(this.dict1Auto) // dot file before re-writes
+      return lr.dict2dot_main(this.dict1Auto, this.extendedLabels) // dot file before re-writes
     },
     
     "dot2Auto": function() {
       if(!this.dict2Auto) return ""
-      return lr.dict2dot_main(this.dict2Auto) // dot file after re-writes
+      return lr.dict2dot_main(this.dict2Auto, this.extendedLabels) // dot file after re-writes
     },
     
     "dict1FromJsAuto": function () {
@@ -340,7 +322,7 @@ var app = new Vue({
       
       // convert to dot
       try {
-        var lambda_dot = lr.dict2dot_main(lambda_dict)
+        var lambda_dot = lr.dict2dot_main(lambda_dict, this.extendedLabels)
         //console.log("lambda dot", lambda_dot)
       } catch (e) {
         // statements to handle any exceptions
@@ -387,7 +369,7 @@ var app = new Vue({
       
       // convert to dot
       try {
-        var lambda_dot = lr.dict2dot_main(lambda_dict)
+        var lambda_dot = lr.dict2dot_main(lambda_dict, this.extendedLabels)
         //console.log("lambda dot", lambda_dot)
       } catch (e) {
         // statements to handle any exceptions

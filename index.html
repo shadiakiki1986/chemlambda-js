@@ -156,9 +156,13 @@
         
         <!-- column 1 for user input -->
         <div class="col-md-3" v-if="dotFrom == 'lambda'">
+
+          <div class="row">
+            Extended labels:
+            <input type="checkbox" v-model="extendedLabels" />
+          </div>
           
           <div class="row">
-            
             Lambda term:
             
             <select id="jsExamples" v-model="jsExSelected"> <!-- @change="jsExOnChange($event)"> -->
@@ -168,9 +172,8 @@
             <button @click="pushJs()" class="btn btn-xs btn-primary" v-if="dotFrom=='lambda'">
               Plot
             </button>
-
           </div>
-          
+
           <div class="row">
             {{jsExSelected.lambda}}
           </div>

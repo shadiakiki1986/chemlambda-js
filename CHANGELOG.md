@@ -8,6 +8,7 @@ Version 0.0.5 (2019-04-17)
 * enhancement: change input of re-writes to be textarea instead of custom dropdowns
 * enhancement: example of predecessor(three) now comes with pre-written re-writes
 * feature: allow multiple edges to be added/deleted in re-write
+* feature: add extended labels checkbox
 
 
 Version 0.0.4 (2019-04-1{5,6,7})
