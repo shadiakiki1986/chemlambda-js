@@ -364,7 +364,7 @@ function LambdaReader() {
     
         return gather[key].to.map(toNodeLabel => {
           	if(gather[key].from == null) {
-            	return {'from': toNodeLabel, 'to': node_frin}
+            	return {'from': node_frin, 'to': toNodeLabel}
             }
         
         		return {'from': gather[key].from, 'to': toNodeLabel}

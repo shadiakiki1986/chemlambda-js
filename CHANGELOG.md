@@ -1,3 +1,9 @@
+Version 0.0.5 (2019-04-17)
+
+* bugfix: FRIN to be on input
+* enhancement: add an example
+
+
 Version 0.0.4 (2019-04-1{5,6,7})
 
 * feature: use bootstrap css

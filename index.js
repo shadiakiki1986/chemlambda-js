@@ -13,6 +13,8 @@ var lt = new LambdaTerms()
 var jsExamplesOpt = [
   {"title": "λu.x", "lambda": "λu.x", "javascript": "u=>x", "default": true},
   {"title": "λn.n(λu.x)", "lambda": "λn.n(λu.x)", "javascript": "n=> n (u=>x)"},
+  {"title": "λf.λx.x(y)", "lambda": "λf.λx.x(y)", "javascript": "f => x => x(y)"},
+  
   {"title": "three",
    "lambda": "three := λf.λx.f(f(f x))",
    "javascript": "f => x => f(f(f(x)))"
@@ -279,7 +281,10 @@ var app = new Vue({
               // there is supposed to be 1 such edge of each above
               Object.keys(edges_labeled).forEach(k => {
                 if(edges_labeled[k].length == 0) throw "Failed to identify edge " + k + ". Found none"
-                if(edges_labeled[k].length  > 1) throw "Failed to identify edge " + k + ". Found > 1"
+                if(edges_labeled[k].length  > 1) {
+                  console.error("edges > 1. Details: ", edges_labeled[k])
+                  throw "Failed to identify edge " + k + ". Found > 1"
+                }
                 
                 edges_labeled[k] = edges_labeled[k][0]
               })
