@@ -72,9 +72,10 @@ describe('LambdaReader', function() {
 
 
     it('newNodeId', function() {
-      var test_allIds = ['L0', 'L1', 'A0']
+      lr.globalIdRegister = ['L0', 'L1', 'A0']
       assert.equal(lr.newNodeId('L', test_allIds), 'L2')
       assert.equal(lr.newNodeId('A', test_allIds), 'A1')
+      lr.globalIdRegister = []
     });
 
 

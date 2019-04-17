@@ -113,6 +113,7 @@ function LambdaReader() {
     
     //------------------------------------------------------------
     // utility function to get a new ID for a node
+    var globalIdRegister = [] // global list of IDs
     this.newNodeId = function(nodetype, allIds) {
       // skip allIds to imply it from o_dict
       allIds = allIds.filter(x => x.startsWith(nodetype))
@@ -122,13 +123,16 @@ function LambdaReader() {
         (i < MAXNUM) && (allIds.indexOf(newId) != -1); i++) {
         newId = '' + nodetype + i;
       }
+      // append to global register
+      globalIdRegister = globalIdRegister.concat(newId)
+      
+      //return
       return newId
     }
     
     
     //------------------------------------------------------------
     // similar to this.jsjson2lambda but for outputting mol file
-    var globalIdRegister = [] // global list of IDs
     this.jsjson2dict_nodes = function(json_in, vardict1, paramname) {
       var out = []
       if (vardict1 == undefined) {
@@ -158,8 +162,7 @@ function LambdaReader() {
           var bodyLambdaStr = this.jsjson2lambda(json_in.body)
           
           var li1 = (json_in.id != null ? json_in.id.name : this.newNodeId("L", globalIdRegister))
-          globalIdRegister = globalIdRegister.concat(li1)
-    
+
           var envelopeLambdaDict = {
             "type": "L",
             "id": li1,
@@ -194,8 +197,7 @@ function LambdaReader() {
           //envelopeLambdaStr = this.jsjson2lambda(json_in, vardict3, paramname)
     
           //var li1 = (json_in.id != null ? json_in.id.name : this.newNodeId("L", globalIdRegister))
-          //globalIdRegister = globalIdRegister.concat(li1)
-    
+
           // FIXME
           // Check if `li1` is unique otherwsise issue a new one
           // similar to `li2` below
@@ -222,8 +224,7 @@ function LambdaReader() {
           var bodyStr = this.jsjson2lambda(json_in.body, vardict1, json_in.params[0].name)
           var envStr = this.jsjson2lambda(json_in, vardict1, json_in.params[0].name)
           var li2 = (json_in.id != null ? json_in.id.name : this.newNodeId("L", globalIdRegister))
-          globalIdRegister = globalIdRegister.concat(li2)
-    
+
           //var o12 = li2 + " " + '[label="<lo> ' + paramname + ' |{<mi> '+ o2b2 + '|' + li2 + '} | <ro> λ' + paramname + '.'+ o2b2 + '"];'
           var o12 = {
             "type": "L",
@@ -267,8 +268,7 @@ function LambdaReader() {
           //}
     
           var nodeId = this.newNodeId("A", globalIdRegister)
-          globalIdRegister = globalIdRegister.concat(nodeId)
-    
+
           return o00.concat(arg_d).concat([{
             "type": "A",
             "id": nodeId,
@@ -312,6 +312,9 @@ function LambdaReader() {
     }
     
     this.jsjson2dict_edges = function(json_out) {
+      // first gather data in an associative array of structure
+      // key = from node
+      // value = list of to nodes
       var gather = {}
       var self = this
       json_out.forEach(row => {
@@ -322,7 +325,7 @@ function LambdaReader() {
     
     			// build node string labels
           var inout = type_side_to_inout(row.type, k1)
-          var nodeDict = {'id': row.id, 'portname': k1, 'inout': inout}
+          var nodeDict = {'type': row.type, 'id': row.id, 'portname': k1, 'inout': inout}
           var nodeLabel = nodeDict2label(nodeDict)
           
           // decide to place the node in "from" or "to"
@@ -355,16 +358,29 @@ function LambdaReader() {
         })
       })
     
-      var node_frout = {"type": "FROUT", "id": "FROUT", "port": "m", "inout": "i"}
-      var node_frin = {"type": "FRIN", "id": "FRIN", "port": "m", "inout": "i"}
+      // dicts below match with input to nodeDict2label
+      var node_frout = {"type": "FROUT", "id": "FROUT", "portname": "m", "inout": "i"}
+      var node_t = {"type": "T", "id": "T", "portname": "m", "inout": "i"}
+      var node_frin = {"type": "FRIN", "id": "FRIN", "portname": "m", "inout": "o"}
+      
       return Object.keys(gather).map(function(key) {
     		if (gather[key].to.length == 0) {
-        		return {'from': gather[key].from, 'to': node_frout}
+    		  if(gather[key].from.type=='L' && gather[key].from.portname=='l') {
+    		    var node_i = clone(node_t)
+    		    node_i.id = self.newNodeId("T", globalIdRegister)
+    		    return {'from': gather[key].from, 'to': node_i}
+    		  } else {
+    		    var node_i = clone(node_frout)
+    		    node_i.id = self.newNodeId("FROUT", globalIdRegister)
+        		return {'from': gather[key].from, 'to': node_i}
+    		  }
         }
     
         return gather[key].to.map(toNodeLabel => {
           	if(gather[key].from == null) {
-            	return {'from': node_frin, 'to': toNodeLabel}
+      		    var node_i = clone(node_frin)
+      		    node_i.id = self.newNodeId("FRIN", globalIdRegister)
+            	return {'from': node_i, 'to': toNodeLabel}
             }
         
         		return {'from': gather[key].from, 'to': toNodeLabel}
@@ -448,10 +464,11 @@ function LambdaReader() {
           node [shape=record, color=green, style=filled]; 
         `
         var dot_header_other = `
-          // other
-          T [ shape=point, color=black, style=filled ]
-          FRIN [ style=filled, color=blue ]
-          FROUT [ style=filled, color=blue ]
+          // other nodes, e.g. T, FROUT, FRIN
+          node [shape=record, color=blue, style=filled]; 
+          //T [ shape=point, color=black, style=filled ]
+          //FRIN [ style=filled, color=blue ]
+          //FROUT [ style=filled, color=blue ]
         `
         
       // reduce list to dot file
