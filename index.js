@@ -11,43 +11,54 @@ var lt = new LambdaTerms()
 // set options of dropdown
 // https://stackoverflow.com/a/9895164/4126114
 var jsExamplesOpt = [
-  {"title": "λu.x", "lambda": "λu.x", "javascript": "u=>x", "default": true},
-  {"title": "λn.n(λu.x)", "lambda": "λn.n(λu.x)", "javascript": "n=> n (u=>x)"},
-  {"title": "λf.λx.x(y)", "lambda": "λf.λx.x(y)", "javascript": "f => x => x(y)"},
-  
-  {"title": "three",
-   "lambda": "three := λf.λx.f(f(f x))",
-   "javascript": "f => x => f(f(f(x)))"
+  { "title": "λu.x", 
+    "description": "λu.x", 
+    "javascript": "u=>x", 
+    "default": true
   },
-  {"title": "predecessor",
-   "lambda": "PRED := λn.λf.λx.n (λg.λh.h (g f)) (λu.x) (λu.u)",
-   "javascript": `n => f => x => {
-        var L4 = u1 => x
-        var L5 = u2 => u2 // notice that this is u2 (versus u1 above) instead of plain "u"
-        var L6 = g => h => h(g(f))
-        return ((n(L6))(L4))(L5)
-      }`
+  { "title": "λn.n(λu.x)", 
+    "description": "λn.n(λu.x)", 
+    "javascript": "n=> n (u=>x)"
+  },
+  { "title": "λf.λx.x(y)", 
+    "description": "λf.λx.x(y)", 
+    "javascript": "f => x => x(y)"
+  },
+  { "title": "three",
+    "description": "three := λf.λx.f(f(f x))",
+    "javascript": "f => x => f(f(f(x)))"
+  },
+  { "title": "predecessor",
+    "description": "PRED := λn.λf.λx.n (λg.λh.h (g f)) (λu.x) (λu.u)",
+    "javascript": `n => f => x => {
+  var L4 = u1 => x
+  var L5 = u2 => u2 // notice that this is u2 (versus u1 above) instead of plain "u"
+  var L6 = g => h => h(g(f))
+  return ((n(L6))(L4))(L5)
+}`
   },
   {"title":"predecessor(three)",
-   "lambda": "PRED(three)", 
+   "description": "PRED(three)", 
    "javascript": `PRED3 => {
-      
-        var PRED = n => f1 => x1 => {
-          var L4 = u1 => x1
-          var L5 = u2 => u2
-          var L6 = g => h => h(g(f1))
-          return ((n(L6))(L4))(L5)
-        }
-      
-        var three = f2 => x2 => f2(f2(f2(x2)))
-      
-        return PRED(three)
-      }`,
+  var PRED = n => f1 => x1 => {
+    var L4 = u1 => x1
+    var L5 = u2 => u2
+    var L6 = g => h => h(g(f1))
+    return ((n(L6))(L4))(L5)
+  }
+
+  var three = f2 => x2 => f2(f2(f2(x2)))
+
+  return PRED(three)
+}`,
       "rewrites": `beta L6 A8
 beta L8 A2
 beta L7 A3`
   },
-  {"title": "other", "lambda": "other", "javascript": ""}
+  { "title": "other", 
+    "description": "other", 
+    "javascript": ""
+  }
 ]; 
 
 // https://stackoverflow.com/a/10290924/4126114
@@ -102,7 +113,7 @@ var app = new Vue({
       this.error1Msg = ""
       this.error2Msg = ""
       this.jsAuto = clone(this.jsExSelected.javascript);
-      this.dict1Auto = clone(this.dict1FromJsAuto)
+      this.dict1Auto = ""
 
       this.graph1Visible = true
       this.graph2Visible = false
