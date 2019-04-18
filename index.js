@@ -96,6 +96,7 @@ var app = new Vue({
     "jsAuto": "",
     "dict1Auto": "",
     "dict2Auto": "",
+    "rwAuto": [],
 
     "error1Msg": "",
     "error2Msg": "",
@@ -121,11 +122,13 @@ var app = new Vue({
       this.graph1Visible = true
       this.graph2Visible = false
       this.rwTxt = ""
+      this.rwAuto = clone([])
       this.dict2Auto = "" // clone(this.dict1Auto) // without any re-writes
     },
     
     jsExOnChange: function() {
       this.resetInput()
+      
       this.inTitle = this.jsExSelected.title
       this.inDescription = this.jsExSelected.description
       this.inJavascript = this.jsExSelected.javascript
@@ -166,6 +169,7 @@ var app = new Vue({
         this.dict1Auto = clone(this.dot1Manual)
       }
       
+      this.rwAuto = clone(this.rwVal)
       // final step
       this.dict2Auto = clone(this.dict2FromDict1Auto); // with re-writes
       this.graph1Visible = false
@@ -218,18 +222,18 @@ var app = new Vue({
     
     
     "dict2FromDict1Auto": function() {
-      // compute new graph from re-writes (rwVal)
-      console.log("re-calculuate dict2fromdict1auto", this.rwVal)
+      // compute new graph from re-writes (rwAuto)
+      console.log("re-calculuate dict2fromdict1auto", this.rwAuto)
 
       // init
       var lambda_dict = clone(this.dict1Auto)
       
-      if(this.rwVal.length==0) {
+      if(this.rwAuto.length==0) {
         // no re-writes
         return lambda_dict;
       }
       
-      if(this.rwVal.filter(x => x!=null).length == 0) {
+      if(this.rwAuto.filter(x => x!=null).length == 0) {
         // no re-writes
         return lambda_dict;
       }
@@ -242,8 +246,8 @@ var app = new Vue({
       var edges_dict = createAssociativeArray(edges_keys, lambda_dict.edges)
       
       // pass dict through re-writes
-      console.log("dict2auto, rewrites", this.rwVal)
-      this.rwVal.forEach(rwi => {
+      console.log("dict2auto, rewrites", this.rwAuto)
+      this.rwAuto.forEach(rwi => {
         if(rwi == null) return
         
         switch(rwi.type) {
