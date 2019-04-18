@@ -3,6 +3,8 @@ Version 0.0.6 (2019-04-17)
 * enhancement: aesthetics
 * bugfix: buttons should not submit the form
 * bugfix: rwVal should be pushed into rwAuto to affect the graph, and not "live"
+* feature: support move "dist"
+* enhancement: simplify the newNodeId usage by not needing to pass in the global ID register list
 
 
 Version 0.0.5 (2019-04-17)

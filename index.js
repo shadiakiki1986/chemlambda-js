@@ -53,7 +53,10 @@ var jsExamplesOpt = [
 }`,
       "rewrites": `beta L6 A8
 beta L8 A2
-beta L7 A3`
+
+# either perform beta, or dist
+# beta L7 A3
+dist L3`
   }
 ]; 
 
@@ -223,7 +226,6 @@ var app = new Vue({
     
     "dict2FromDict1Auto": function() {
       // compute new graph from re-writes (rwAuto)
-      console.log("re-calculuate dict2fromdict1auto", this.rwAuto)
 
       // init
       var lambda_dict = clone(this.dict1Auto)
@@ -238,23 +240,18 @@ var app = new Vue({
         return lambda_dict;
       }
       
-      console.log("there are rewrites")
-      
-      
       // convert edges array to associative array
       var edges_keys = lambda_dict.edges.map(lr.edgeDict2dot);
       var edges_dict = createAssociativeArray(edges_keys, lambda_dict.edges)
       
       // pass dict through re-writes
-      console.log("dict2auto, rewrites", this.rwAuto)
       this.rwAuto.forEach(rwi => {
         if(rwi == null) return
         
         switch(rwi.type) {
           case "beta":
             // e.g. beta L1 A1
-            console.log("beta move", rwi)
-            
+
             try {
               // get nodes
               var n1 = lambda_dict.nodes.filter(node => node.id==rwi.n1)
@@ -322,6 +319,90 @@ var app = new Vue({
             })
 
             break;
+            
+            
+          case "dist":
+            // e.g. dist L1
+
+            try {
+              // sanity check
+              if(n2 != null) throw("Rewrite error: Move " + rwi.type + " only supports 1 node as input. Two were passed")
+              
+              // get node
+              var n1 = lambda_dict.nodes.filter(node => node.id==rwi.n1)
+
+              // sanity checks
+              if(n1.length==0) throw ("Rewrite error: Node " + rwi.n1 + " not found")
+              if(n1.length >1) throw ("Rewrite error: Node " + rwi.n1 + " found > 1")
+
+              // take first element of each array
+              n1 = n1[0]
+
+              // check types
+              if(n1.type!='L') throw ("Rewrite error: 1st node for beta is expected to have type L. Got '" + n1.type + "' instead")
+
+              // identify edges
+              var edges_labeled = {
+                "L_in": Object.keys(edges_dict).filter(k => edges_dict[k].to.id==rwi.n1),
+                "L_out_r": Object.keys(edges_dict).filter(k => (edges_dict[k].from.id==n1.id)&&(edges_dict[k].from.portname=="r")),
+                "L_out_l": Object.keys(edges_dict).filter(k => (edges_dict[k].from.id==n1.id)&&(edges_dict[k].from.portname=="l"))
+              }
+              
+            } catch (e) {
+              this.error2Msg = e
+              console.error(e)
+              return
+            }
+            
+            // add edges
+            edges_labeled["L_in"].map(L_in => {
+              return edges_labeled["L_out_r"].map(L_out_r => {
+                return edges_labeled["L_out_l"].map(L_out_l => {
+                  // clone the old L node
+                  var old_L_id = rwi.n1
+                  var old_L_node = lambda_dict.nodes.filter(n => n.id==old_L_id)[0]
+                  var new_L_id = lr.newNodeId("L")
+                  var new_L_node = clone(old_L_node)
+                  new_L_node.id = new_L_id
+                  new_L_node.from = "dist " + rwi.n1
+                  
+                  // add the new L node to the list of nodes
+                  lambda_dict.nodes = lambda_dict.nodes.concat([new_L_node])
+                  
+                  // add the new L node's edges to the list of edges
+                  // Notice that none of the outputs here are branched
+                  var new_L_l = {"type": "L", "id": new_L_id, "portname": "l", "inout": "o"}
+                  var new_L_m = {"type": "L", "id": new_L_id, "portname": "m", "inout": "i"}
+                  var new_L_r = {"type": "L", "id": new_L_id, "portname": "r", "inout": "o"}
+  
+                  return [
+                    { 'from': edges_dict[L_in].from, 
+                      'to': new_L_m
+                    },
+                    { 'from': new_L_l, 
+                      'to': edges_dict[L_out_r].to
+                    },
+                    { 'from': new_L_r, 
+                      'to': edges_dict[L_out_l].to
+                    },
+                  ]
+                }).reduce((a,b)=>a.concat(b), [])
+              }).reduce((a,b)=>a.concat(b), [])
+            }).reduce((a,b)=>a.concat(b), []).forEach(e => {
+              var k = lr.edgeDict2dot(e)
+              edges_dict[k] = e
+            })
+
+            // delete edges
+            Object.keys(edges_labeled).forEach(k1 => {
+              edges_labeled[k1].map(k2 => {
+                delete edges_dict[k2]
+              })
+            })
+
+            break;
+            
+            
           default:
             throw "Unsupported move " + rwi.type
         }
@@ -336,9 +417,23 @@ var app = new Vue({
     
     "rwVal": function() {
       return this.rwTxt.split("\n").map(l => l.trim()).filter(l => !!l).map(l => {
-        var row = l.split(" ")
-        return {'type': row[0], 'n1': row[1], 'n2': row[2]}
-      })
+        // cut off everything after a # (as comment character)
+        // https://stackoverflow.com/a/4059018/4126114
+        if(l.indexOf("#") != -1) {
+          l = l.substr(0, l.indexOf("#"));
+        }
+        
+        // split on space and drop empty words (due to consecutive spaces)
+        var row = l.split(" ").filter(w => w.length > 0)
+        if(row.length <= 1) return null // these are filtered out later
+        
+        var out = {
+          'type': row[0],
+          'n1': row[1],
+          'n2': row.length >= 3 ? row[2] : null
+        }
+        return out
+      }).filter(l => !!l)
     }
     
   },
@@ -356,7 +451,6 @@ var app = new Vue({
       // convert to dot
       try {
         var lambda_dot = lr.dict2dot_main(lambda_dict, this.extendedLabels)
-        //console.log("lambda dot", lambda_dot)
       } catch (e) {
         // statements to handle any exceptions
         console.error(e);
@@ -403,7 +497,6 @@ var app = new Vue({
       // convert to dot
       try {
         var lambda_dot = lr.dict2dot_main(lambda_dict, this.extendedLabels)
-        //console.log("lambda dot", lambda_dot)
       } catch (e) {
         // statements to handle any exceptions
         console.error(e);

@@ -113,10 +113,9 @@ function LambdaReader() {
     
     //------------------------------------------------------------
     // utility function to get a new ID for a node
-    var globalIdRegister = [] // global list of IDs
-    this.newNodeId = function(nodetype, allIds) {
-      // skip allIds to imply it from o_dict
-      allIds = allIds.filter(x => x.startsWith(nodetype))
+    this.globalIdRegister = [] // global list of IDs
+    this.newNodeId = function(nodetype) {
+      var allIds = this.globalIdRegister.filter(x => x.startsWith(nodetype))
       newId = nodetype + '0'
       MAXNUM = 100 // circuit breaker
       for (var i = 0;
@@ -124,8 +123,8 @@ function LambdaReader() {
         newId = '' + nodetype + i;
       }
       // append to global register
-      globalIdRegister = globalIdRegister.concat(newId)
-      
+      this.globalIdRegister = this.globalIdRegister.concat([newId])
+
       //return
       return newId
     }
@@ -139,7 +138,7 @@ function LambdaReader() {
         // first call should be with "Program"
         if (json_in.type != "Program") throw "Should be a program"
         // first call should also clear the ID register
-        globalIdRegister = []
+        this.globalIdRegister = []
       }
     
       if (vardict1 == undefined) vardict1 = {}
@@ -161,7 +160,7 @@ function LambdaReader() {
           var envelopeLambdaStr = this.jsjson2lambda(json_in) // , vardict3, paramname)
           var bodyLambdaStr = this.jsjson2lambda(json_in.body)
           
-          var li1 = (json_in.id != null ? json_in.id.name : this.newNodeId("L", globalIdRegister))
+          var li1 = (json_in.id != null ? json_in.id.name : this.newNodeId("L"))
 
           var envelopeLambdaDict = {
             "type": "L",
@@ -196,7 +195,7 @@ function LambdaReader() {
           //retStmtLambdaStr = this.jsjson2lambda(retStmtDict, vardict3)
           //envelopeLambdaStr = this.jsjson2lambda(json_in, vardict3, paramname)
     
-          //var li1 = (json_in.id != null ? json_in.id.name : this.newNodeId("L", globalIdRegister))
+          //var li1 = (json_in.id != null ? json_in.id.name : this.newNodeId("L"))
 
           // FIXME
           // Check if `li1` is unique otherwsise issue a new one
@@ -223,7 +222,7 @@ function LambdaReader() {
           var bodyDict = this.jsjson2dict_nodes(json_in.body, vardict1, json_in.params[0].name)
           var bodyStr = this.jsjson2lambda(json_in.body, vardict1, json_in.params[0].name)
           var envStr = this.jsjson2lambda(json_in, vardict1, json_in.params[0].name)
-          var li2 = (json_in.id != null ? json_in.id.name : this.newNodeId("L", globalIdRegister))
+          var li2 = (json_in.id != null ? json_in.id.name : this.newNodeId("L"))
 
           //var o12 = li2 + " " + '[label="<lo> ' + paramname + ' |{<mi> '+ o2b2 + '|' + li2 + '} | <ro> λ' + paramname + '.'+ o2b2 + '"];'
           var o12 = {
@@ -267,7 +266,7 @@ function LambdaReader() {
           //  }
           //}
     
-          var nodeId = this.newNodeId("A", globalIdRegister)
+          var nodeId = this.newNodeId("A")
 
           return o00.concat(arg_d).concat([{
             "type": "A",
@@ -367,11 +366,11 @@ function LambdaReader() {
     		if (gather[key].to.length == 0) {
     		  if(gather[key].from.type=='L' && gather[key].from.portname=='l') {
     		    var node_i = clone(node_t)
-    		    node_i.id = self.newNodeId("T", globalIdRegister)
+    		    node_i.id = self.newNodeId("T")
     		    return {'from': gather[key].from, 'to': node_i}
     		  } else {
     		    var node_i = clone(node_frout)
-    		    node_i.id = self.newNodeId("FROUT", globalIdRegister)
+    		    node_i.id = self.newNodeId("FROUT")
         		return {'from': gather[key].from, 'to': node_i}
     		  }
         }
@@ -379,7 +378,7 @@ function LambdaReader() {
         return gather[key].to.map(toNodeLabel => {
           	if(gather[key].from == null) {
       		    var node_i = clone(node_frin)
-      		    node_i.id = self.newNodeId("FRIN", globalIdRegister)
+      		    node_i.id = self.newNodeId("FRIN")
             	return {'from': node_i, 'to': toNodeLabel}
             }
         

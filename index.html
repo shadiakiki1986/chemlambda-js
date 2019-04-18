@@ -265,9 +265,20 @@
               
               <pre>
                 beta node1 node2
-                beta node3 node4
+                beta node1 node2 # comments after a hash character
+                dist node3
+                # dist node 4 # comment out a line
                 ...
+                
+                For beta:
+                - node1 should be of type "L", and node2 of type "A"
+                - node1 and node2 should be directly connected
+                
+                For dist: 
+                - node3 should be of type L
+                - one of node3's outputs should be branching out to two other nodes
               </pre>
+              
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
