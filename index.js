@@ -13,7 +13,7 @@ var lt = new LambdaTerms()
 var jsExamplesOpt = [
   { "title": "λu.x", 
     "description": "λu.x", 
-    "javascript": "u=>x", 
+    "javascript": "u=>x",
     "default": true
   },
   { "title": "λn.n(λu.x)", 
@@ -54,10 +54,6 @@ var jsExamplesOpt = [
       "rewrites": `beta L6 A8
 beta L8 A2
 beta L7 A3`
-  },
-  { "title": "other", 
-    "description": "other", 
-    "javascript": ""
   }
 ]; 
 
@@ -85,6 +81,10 @@ function clone(assArray) {
 var app = new Vue({
   el: '#app',
   data: {
+    "inTitle": "",
+    "inDescription": "",
+    "inJavascript": "",
+    
     "dot1From": "lambda",
 
     "jsExamplesOpt": jsExamplesOpt,
@@ -109,22 +109,28 @@ var app = new Vue({
   },
   
   methods: {
-    pushJs: function() {
+    resetInput: function() {
       this.error1Msg = ""
       this.error2Msg = ""
-      this.jsAuto = clone(this.jsExSelected.javascript);
+      this.jsAuto = ""
       this.dict1Auto = ""
-
       this.graph1Visible = true
       this.graph2Visible = false
-      
+      this.rwTxt = ""
+      this.dict2Auto = "" // clone(this.dict1Auto) // without any re-writes
+    },
+    
+    jsExOnChange: function() {
+      this.resetInput()
+      this.inTitle = this.jsExSelected.title
+      this.inDescription = this.jsExSelected.description
+      this.inJavascript = this.jsExSelected.javascript
+      this.jsAuto = this.jsExSelected.javascript; // this was clone() eventhough it was just text
+
       if("rewrites" in this.jsExSelected)  {
         this.rwTxt = this.jsExSelected.rewrites
-      } else {
-        this.rwTxt = ""
       }
-      
-      this.dict2Auto = "" // clone(this.dict1Auto) // without any re-writes
+
     },
     
     pushDot: function() {

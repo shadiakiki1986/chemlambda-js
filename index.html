@@ -79,20 +79,42 @@
           <ul class="navbar-nav mr-auto">
             
             <li class="nav-item">
-              Examples
-              <select id="jsExamples" v-model="jsExSelected"> <!-- @change="jsExOnChange($event)"> -->
-                <option v-for="item in jsExamplesOpt" :value="item">{{item.title}}</option>
-              </select>
+              <form class="form">
+                
+
+              </form>
             </li>
 
-            <li class="nav-item active">
-              <!-- <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a> -->
-              <a class="nav-link btn btn-primary btn-sm" @click="pushRw()" href="#">
-                <span class="badge badge-secondary">&gt;</span> &nbsp; Run
-              </a>
-            </li>
 
           </ul>
+          <form class="form-inline my-2 my-lg-0">
+            
+            <div class="form-group">
+              <button class="btn btn-outline-primary my-2 my-sm-0" @click="resetInput()">
+                New
+                &nbsp;
+                <span class="badge badge-primary">&gt;</span>
+              </button>
+            </div>
+
+            <div class="form-group">
+              &nbsp;
+              Examples
+              &nbsp;
+              <select class="form-control mr-sm-2" v-model="jsExSelected">
+                <option v-for="item in jsExamplesOpt" :value="item">{{item.title}}</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <button class="btn btn-outline-success my-2 my-sm-0" type="submit" @click="jsExOnChange()">
+                Load
+                &nbsp;
+                <span class="badge badge-success">&gt;</span>
+              </button>
+            </div>
+
+          </form>
           <div class="my-2 my-lg-0">
             <a class="nav-link" href="https://github.com/shadiakiki1986/chemlambda-js">
               <svg class="octicon octicon-mark-github v-align-middle" height="32" viewBox="0 0 16 16" version="1.1" width="32" aria-hidden="true">
@@ -260,78 +282,83 @@
       <div class="row">
         <!-- column 1 for user input -->
         <div class="col-3">
-  
-          <div>
-            Extended labels:
-            <input type="checkbox" v-model="extendedLabels" />
-          </div>
-          
-          <div>
-            Graph from:
+          <form>
             
-            <select v-model="dot1From">
-              <option value="lambda" selected>Lambda terms</option>
-              <option value="custom">Custom graph</option>
-            </select>
-          </div>
-            
-          <div>
-            
-            <div v-if="dot1From == 'lambda'">
-              <div>
-                {{jsExSelected.description}}
-              </div>
+            <div class="form-group">
+              <button type="Submit" class="form-control btn btn-outline-primary btn-block" @click="pushRw()">
+                Run
+                &nbsp;
+                <span class="badge badge-primary">&gt;</span>
+              </button>
+            </div>
+
+            <div class="form-group">
+              <input type="text" class="form-control form-control-sm" v-model="inTitle" placeholder="Title"></input>
+            </div>
+
+            <div class="form-group">
+              <input type="text" class="form-control form-control-sm" v-model="inDescription" placeholder="Description"></input>
+            </div>
+
+            <div class="form-group form-check">
+              <input class="form-check-input" type="checkbox" v-model="extendedLabels" id="exampleCheck1" />
+              <label class="form-check-label" for="exampleCheck1">Extended labels</label>
+            </div>
               
-              <div>
-                <textarea placeholder="Enter javascript function here" v-model="jsExSelected.javascript" ></textarea>
-              </div>
+            <div class="form-group">
+              <label for="exampleFormControlSelect1">Graph from</label>
+              
+              <select class="form-control form-control-sm" id="exampleFormControlSelect1" v-model="dot1From">
+                <option value="lambda" selected>Lambda terms</option>
+                <option value="custom">Custom graph</option>
+              </select>
+            </div>
+
+            <div class="form-group" v-if="dot1From == 'lambda'">
+              <label for="exampleFormControlTextarea2">Lambda terms (javascript)</label>
+              <textarea class="form-control" id="exampleFormControlTextarea2" rows="3" v-model="inJavascript"></textarea>
             </div>
   
   
-            <div v-if="dot1From == 'custom'">
-              <textarea v-model="dot1Manual" ></textarea> <!-- onchange="dotChange()" -->
-    
+            <div class="form-group" v-if="dot1From == 'custom'">
+              <label for="exampleFormControlTextarea3">Custom graph (dot script)</label>
+              
+              <div v-if="error1Msg" class="alert alert-danger">
+                Error in graph before re-writes:
+                <br/>
+                {{error1Msg}}
+              </div>
+              
+              <textarea class="form-control" id="exampleFormControlTextarea3" rows="3" v-model="dot1Manual"></textarea>
+
               <span>
                 Copy-paste to <a href="http://viz-js.com/">viz.js</a>
                 and perform graph re-writes there
               </span>
             </div>
+    
             
-          </div>
-          
+            <div class="form-group">
+
+              <label for="exampleFormControlTextarea4">
+                Re-writes
+                &nbsp;
+                <!-- Button trigger modal -->
+                <button type="button" class="btn btn-sm btn-secondary" data-toggle="modal" data-target="#rwSyntaxModal" title="Help on re-writes syntax">
+                  ?
+                </button>
+              </label>
+
+              <div v-if="error2Msg" class="alert alert-danger">
+                Error in graph after re-writes:
+                <br/>
+                {{error2Msg}}
+              </div>
   
-          <div>
-            
-            <div v-if="error1Msg" class="alert alert-danger">
-              Error in graph before re-writes:
-              <br/>
-              {{error1Msg}}
+              <textarea class="form-control" id="exampleFormControlTextarea4" rows="3" v-model="rwTxt"></textarea>
             </div>
   
-          </div>
-  
-          
-          <div>
-            
-            Re-writes:
-            
-            <div v-if="error2Msg" class="alert alert-danger">
-              Error in graph after re-writes:
-              <br/>
-              {{error2Msg}}
-            </div>
-
-            <!-- Button trigger modal -->
-            <button type="button" class="btn btn-sm btn-secondary" data-toggle="modal" data-target="#rwSyntaxModal">
-              Syntax
-            </button>
-
-            
-            <textarea v-model="rwTxt"></textarea>
-  
-          </div>
-  
-  
+          </form>
           
         </div>
    
