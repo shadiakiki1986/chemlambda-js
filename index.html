@@ -77,27 +77,19 @@
       
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
           <ul class="navbar-nav mr-auto">
+            
+            <li class="nav-item">
+              Examples
+              <select id="jsExamples" v-model="jsExSelected"> <!-- @change="jsExOnChange($event)"> -->
+                <option v-for="item in jsExamplesOpt" :value="item">{{item.title}}</option>
+              </select>
+            </li>
+
             <li class="nav-item active">
               <!-- <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a> -->
               <a class="nav-link btn btn-primary btn-sm" @click="pushRw()" href="#">
                 <span class="badge badge-secondary">&gt;</span> &nbsp; Run
               </a>
-            </li>
-            
-            <li class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                Examples
-              </a>
-              <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-                <a class="dropdown-item" href="#">
-                  <select id="jsExamples" v-model="jsExSelected"> <!-- @change="jsExOnChange($event)"> -->
-                    <option v-for="item in jsExamplesOpt" :value="item">{{item.title}}</option>
-                  </select>        
-                </a>
-              </div>
-            </li>
-
-            <li class="nav-item">
             </li>
 
           </ul>
@@ -239,6 +231,32 @@
         </div>
       </div>
         
+      <!-- Modal -->
+      <div class="modal fade" id="rwSyntaxModal"  role="dialog" aria-labelledby="rw Syntax Modal" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="exampleModalCenterTitle">Graph dot script after re-writes</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              Syntax for re-writes
+              
+              <pre>
+                beta node1 node2
+                beta node3 node4
+                ...
+              </pre>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+          </div>
+        </div>
+      </div>
+        
       <div class="row">
         <!-- column 1 for user input -->
         <div class="col-3">
@@ -302,14 +320,12 @@
               <br/>
               {{error2Msg}}
             </div>
-  
-            Syntax for re-writes
-            
-            <pre>
-              beta node1 node2
-              beta node3 node4
-              ...
-            </pre>
+
+            <!-- Button trigger modal -->
+            <button type="button" class="btn btn-sm btn-secondary" data-toggle="modal" data-target="#rwSyntaxModal">
+              Syntax
+            </button>
+
             
             <textarea v-model="rwTxt"></textarea>
   
@@ -334,7 +350,7 @@
             re-writes
             
             <!-- Button trigger modal -->
-            <button type="button" class="btn btn-sm btn-primary" data-toggle="modal" data-target="#dot1Modal">
+            <button type="button" class="btn btn-sm btn-secondary" data-toggle="modal" data-target="#dot1Modal">
               Dot script
             </button>
     
@@ -350,7 +366,7 @@
             re-writes
             
             <!-- Button trigger modal -->
-            <button type="button" class="btn btn-sm btn-primary" data-toggle="modal" data-target="#dot2Modal">
+            <button type="button" class="btn btn-sm btn-secondary" data-toggle="modal" data-target="#dot2Modal">
               Dot script
             </button>
     
