@@ -137,6 +137,7 @@ var app = new Vue({
 
     },
     
+    /*
     pushDot: function() {
       this.error1Msg = ""
       this.error2Msg = ""
@@ -153,24 +154,18 @@ var app = new Vue({
       
       this.dict2Auto = "" // clone(this.dict1Auto) // without any re-writes
     },
+    */
     
     pushRw: function() {
       this.error1Msg = ""
       this.error2Msg = ""
       if(this.dot1From=='lambda') {
-        this.jsAuto = clone(this.jsExSelected.javascript);
+        this.jsAuto = this.inJavascript;
         this.dict1Auto = clone(this.dict1FromJsAuto)
       } else {
         this.dict1Auto = clone(this.dot1Manual)
       }
       
-      // get re-writes
-      if("rewrites" in this.jsExSelected)  {
-        this.rwTxt = this.jsExSelected.rewrites
-      } else {
-        this.rwTxt = ""
-      }
-
       // final step
       this.dict2Auto = clone(this.dict2FromDict1Auto); // with re-writes
       this.graph1Visible = false
@@ -298,7 +293,7 @@ var app = new Vue({
                     'to': edges_dict[A_out].to
                   }
                 })
-              }).reduce((a,b)=>a.concat(b)),
+              }).reduce((a,b)=>a.concat(b), []),
 
               
               edges_labeled["A_in_notL"].map(A_in_notL => {
@@ -308,9 +303,9 @@ var app = new Vue({
                     'to': edges_dict[L_out_notA].to
                   }
                 })
-              }).reduce((a,b)=>a.concat(b))
+              }).reduce((a,b)=>a.concat(b), [])
               
-            ].reduce((a,b)=>a.concat(b)).forEach(e => {
+            ].reduce((a,b)=>a.concat(b), []).forEach(e => {
               var k = lr.edgeDict2dot(e)
               edges_dict[k] = e
             })
