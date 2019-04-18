@@ -112,6 +112,10 @@ var app = new Vue({
     resetInput: function() {
       this.error1Msg = ""
       this.error2Msg = ""
+      this.inTitle=""
+      this.inDescription=""
+      this.inJavascript=""
+      this.dot1From="lambda"
       this.jsAuto = ""
       this.dict1Auto = ""
       this.graph1Visible = true
