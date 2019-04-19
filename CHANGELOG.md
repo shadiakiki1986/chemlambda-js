@@ -11,7 +11,8 @@ Version 0.0.7 (2019-04-18)
 * enhancement: add "rollout in progress"
 * enhancement: "all" no longer used in suggestd re-writes
 * enhancement: moved code block into try/catch
-* 
+* enhancement: split out code into GraphRewriter
+
 
 Version 0.0.6 (2019-04-17)
 
