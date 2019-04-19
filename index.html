@@ -391,11 +391,16 @@
     
             re-writes
             
-            <!-- Button trigger modal -->
-            <button type="button" class="btn btn-sm btn-secondary" data-toggle="modal" data-target="#dot1Modal">
-              Dot script
-            </button>
-    
+            <small>
+              &nbsp;
+              &nbsp;
+              &nbsp;
+              <!-- Button trigger modal -->
+              <button type="button" class="btn btn-sm btn-secondary" data-toggle="modal" data-target="#dot1Modal">
+                Export
+              </button>
+            </small>
+            
             <div v-html="graph1Svg.outerHTML">
             </div>
           </div>
@@ -407,11 +412,17 @@
             </button>
             re-writes
             
-            <!-- Button trigger modal -->
-            <button type="button" class="btn btn-sm btn-secondary" data-toggle="modal" data-target="#dot2Modal">
-              Dot script
-            </button>
-    
+            
+            <small>
+              &nbsp;
+              &nbsp;
+              &nbsp;
+              <!-- Button trigger modal -->
+              <button type="button" class="btn btn-sm btn-secondary" data-toggle="modal" data-target="#dot2Modal">
+                Export
+              </button>
+            </small>
+
             <div v-html="graph2Svg.outerHTML" v-if="!error2Msg">
             </div>
           </div>
