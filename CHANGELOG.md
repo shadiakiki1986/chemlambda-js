@@ -1,7 +1,17 @@
 Version 0.0.7 (2019-04-18)
 
 * feature: change "dist" to require 4 arguments instead of just 1 argument
-
+* feature: add suggested rewrites
+* feature: allow to step once with selected/random re-write or roll out 50
+    * the application of the graph with the re-writes is inefficient because for each step it computes it from scratch
+* feature: dist not allowed on T, FROUT, FRIN
+* feature: suggested re-writes to be based on output dict after re-write but before plotting
+    * not sure if this was necessary or just an artifact of trying not to use `pushRw` from within `suggestedRwAppend`
+* feature: first working version of rolled out random re-writes .. still inefficient though
+* enhancement: add "rollout in progress"
+* enhancement: "all" no longer used in suggestd re-writes
+* enhancement: moved code block into try/catch
+* 
 
 Version 0.0.6 (2019-04-17)
 
@@ -23,16 +33,6 @@ Version 0.0.5 (2019-04-17)
 * enhancement: example of predecessor(three) now comes with pre-written re-writes
 * feature: allow multiple edges to be added/deleted in re-write
 * feature: add extended labels checkbox
-* feature: add suggested rewrites
-* feature: allow to step once with selected/random re-write or roll out 50
-    * the application of the graph with the re-writes is inefficient because for each step it computes it from scratch
-* feature: dist not allowed on T, FROUT, FRIN
-* feature: suggested re-writes to be based on output dict after re-write but before plotting
-    * not sure if this was necessary or just an artifact of trying not to use `pushRw` from within `suggestedRwAppend`
-* feature: first working version of rolled out random re-writes .. still inefficient though
-* enhancement: add "rollout in progress"
-* enhancement: "all" no longer used in suggestd re-writes
-* enhancement: moved code block into try/catch
 
 
 Version 0.0.4 (2019-04-1{5,6,7})
