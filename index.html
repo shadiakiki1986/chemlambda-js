@@ -42,25 +42,54 @@
     
     <!-- downloaded from https://github.com/mdaines/viz.js/releases/download/v2.1.2/lite.render.js -->
     <script src="vendor/lite.render.js"></script>
-    <!--
+
+    <!-- in case of d3js visualization request -->
+    <script src="https://d3js.org/d3.v4.min.js"></script>
+    <script src="https://cdn.rawgit.com/gmamaladze/d3-dot-graph/cf08847e/build/d3-dot-graph.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.11/lodash.min.js"></script>
+
     <style>
-      /* https://stackoverflow.com/a/25978286 */
-      .svg-container {
-          display: inline-block;
-          position: relative;
-          width: 100%;
-          padding-bottom: 100%; /* aspect ratio */
-          vertical-align: top;
-          overflow: hidden;
+      svg {
+        overflow: hidden;
       }
-      .svg-content-responsive {
-          display: inline-block;
-          position: absolute;
-          top: 10px;
-          left: 0;
+      
+      .node rect {
+        stroke: #333;
+        stroke-width: 1.5px;
+        fill: #fff;
+      }
+      
+      .edgeLabel rect {
+        fill: #fff;
+      }
+      
+      .edgePath {
+        stroke: #333;
+        stroke-width: 1.5px;
+        fill: none;
+      }
+      
+      /* from https://cdn.rawgit.com/gmamaladze/d3-dot-graph/cf08847e/example/index.html */
+      
+      .links path {
+        fill: none;
+        stroke: #666;
+        stroke-width: 1.5px;
+      }
+      
+      .nodes circle {
+        fill: #ccc;
+        stroke: #fff;
+        stroke-width: 1.5px;
+      }
+      
+      .nodes text {
+        fill: #000;
+        font: 10px sans-serif;
+        pointer-events: none;
       }
     </style>
-    -->
+
   </head>  
   <body>
   
@@ -321,6 +350,15 @@
             </div>
               
             <div class="form-group">
+              <label for="exampleFormControlSelect2">Visualization by</label>
+              
+              <select class="form-control form-control-sm" id="exampleFormControlSelect2" v-model="graphManager">
+                <option value="vizjs" selected>vizjs</option>
+                <option value="d3js">d3js</option>
+              </select>
+            </div>
+
+            <div class="form-group">
               <label for="exampleFormControlSelect1">Graph from</label>
               
               <select class="form-control form-control-sm" id="exampleFormControlSelect1" v-model="dot1From">
@@ -488,6 +526,7 @@
     <script src="LambdaTerms.js"></script>
     <script src="LambdaReader.js"></script>
     <script src="GraphRewriter.js"></script>
+    <script src="GraphVisualizerD3js.js"></script>
     <script src="index.js"></script>
 
   </body>

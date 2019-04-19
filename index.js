@@ -5,22 +5,22 @@
 var lr = new LambdaReader()
 var lt = new LambdaTerms()
 var gr = new GraphRewriter()
-
+var gvd3 = new GraphVisualizerD3js()
 
 // set options of dropdown
 // https://stackoverflow.com/a/9895164/4126114
 var jsExamplesOpt = [
-  { "title": "λu.x", 
-    "description": "λu.x", 
+  { "title": "λu.x",
+    "description": "λu.x",
     "javascript": "u=>x",
     "default": true
   },
-  { "title": "λn.n(λu.x)", 
-    "description": "λn.n(λu.x)", 
+  { "title": "λn.n(λu.x)",
+    "description": "λn.n(λu.x)",
     "javascript": "n=> n (u=>x)"
   },
-  { "title": "λf.λx.x(y)", 
-    "description": "λf.λx.x(y)", 
+  { "title": "λf.λx.x(y)",
+    "description": "λf.λx.x(y)",
     "javascript": "f => x => x(y)"
   },
   { "title": "three",
@@ -37,7 +37,7 @@ var jsExamplesOpt = [
 }`
   },
   {"title":"predecessor(three)",
-   "description": "PRED(three)", 
+   "description": "PRED(three)",
    "javascript": `PRED3 => {
   var PRED = n => f1 => x1 => {
     var L4 = u1 => x1
@@ -61,7 +61,7 @@ beta L8 A2
 # dist L2  L3 A0  A7
 `
   }
-]; 
+];
 
 
 // https://stackoverflow.com/a/21147462
@@ -82,12 +82,12 @@ var app = new Vue({
     "inTitle": "",
     "inDescription": "",
     "inJavascript": "",
-    
+
     "dot1From": "lambda",
 
     "jsExamplesOpt": jsExamplesOpt,
     "jsExSelected": jsExamplesOpt[0],
-    
+
     "dot1Manual": "",
     "rwTxt": "",
 
@@ -99,23 +99,24 @@ var app = new Vue({
 
     "error1Msg": "",
     "error2Msg": "",
-    
+
     "graph1Svg": "",
     "graph2Svg": "",
-    
+
     "graph1Visible": true,
-    
+
     "extendedLabels": true,
     "suggestedRwSelected": "",
     "suggestedRwStep": 0,
-    
+
     "suggestedRwMax": 25, // maximum steps to roll out each time
     "suggestedRwMethod": "",
     "suggestedRwInProgress": false,
     //"dict2FromDict1Callback": false
-    "suggestedRwHistory": []
+    "suggestedRwHistory": [],
+    "graphManager": "vizjs"
   },
-  
+
   methods: {
     resetInput: function() {
       this.inTitle=""
@@ -124,7 +125,7 @@ var app = new Vue({
       this.dot1From="lambda"
       this.rwTxt = ""
     },
-    
+
     resetOutput: function() {
       this.error1Msg = ""
       this.error2Msg = ""
@@ -139,11 +140,11 @@ var app = new Vue({
       this.suggestedRwStep = 0
       this.suggestedRwHistory = []
     },
-    
+
     jsExOnChange: function() {
       this.resetInput()
       this.resetOutput()
-      
+
       this.inTitle = this.jsExSelected.title
       this.inDescription = this.jsExSelected.description
       this.inJavascript = this.jsExSelected.javascript
@@ -154,26 +155,26 @@ var app = new Vue({
       }
 
     },
-    
+
     /*
     pushDot: function() {
       this.error1Msg = ""
       this.error2Msg = ""
       this.dict1Auto = clone(this.dot1Manual)
-      
+
       this.graph1Visible = true
       this.graph2Visible = false
-      
+
       if("rewrites" in this.jsExSelected)  {
         this.rwTxt = this.jsExSelected.rewrites
       } else {
         this.rwTxt = ""
       }
-      
+
       this.dict2Auto = "" // clone(this.dict1Auto) // without any re-writes
     },
     */
-    
+
     pushRw: function() {
       this.resetOutput()
 
@@ -181,9 +182,9 @@ var app = new Vue({
         this.jsAuto = this.inJavascript;
         this.dict1Auto = clone(this.dict1FromJsAuto)
       } else {
-        this.dict1Auto = clone(this.dot1Manual)
+        this.dict1Auto = clone(this.dot1Manual) // FIXME shouldnt set dot to dict
       }
-      
+
       this.rwAuto = clone(this.rwVal)
       // final step
       this.dict2tmp = clone(this.dict2FromDict1Auto); // with re-writes
@@ -191,7 +192,7 @@ var app = new Vue({
       this.graph1Visible = false
       this.graph2Visible = true
     },
-    
+
     suggestedRwAppend: function(till_none) {
       // sanity check
       if(till_none && this.suggestedRwMethod!='random') {
@@ -201,7 +202,7 @@ var app = new Vue({
       // increment
       this.suggestedRwStep += 1
       this.suggestedRwInProgress = true
-      
+
       // check method
       var rwCurTxt = ""
       switch(this.suggestedRwMethod) {
@@ -218,8 +219,8 @@ var app = new Vue({
         default:
           throw "Unsupported suggestion method " + this.suggestedRwMethod
       }
-      
-      
+
+
       /*
       method 0: ... wtf ...
       // now that we have a new entry in the re-writes, re-generate the graph
@@ -228,7 +229,7 @@ var app = new Vue({
         console.log("inside callback")
         // stop the callback since fulfilled
         self.dict2FromDict1Callback = false
-        
+
         // if done, then plot and return, otherwise recurse
         // done = loop not requested or no more suggestions or reached a multiple of the max
         if(!till_none || self.suggestedRwAll.length == 0 || self.suggestedRwStep % self.suggestedRwMax == 0) {
@@ -237,19 +238,19 @@ var app = new Vue({
           self.dict2Auto = clone(self.dict2FromDict1Auto);
           return
         }
-        
+
         // recurse, without plotting yet
         self.suggestedRwAppend(till_none)
       }
       this.rwAuto = clone(this.rwVal)
       */
-      
+
       // method 1: complete re-calculation of initial graph + re-writes and graphing
       //this.rwTxt += '\n' + rwCurTxt
       //var tmp_step = this.suggestedRwStep
       //this.pushRw()
       //this.suggestedRwStep = tmp_step
-      
+
       // method 2: calculate new graph based on current graph and re-writes
       this.suggestedRwHistory = this.suggestedRwHistory.concat([rwCurTxt])
       try {
@@ -263,44 +264,61 @@ var app = new Vue({
         this.error2Msg = e;
         return
       }
-      
+
       if(till_none && this.suggestedRwAll.length > 0 && (this.suggestedRwStep % this.suggestedRwMax) != 0) {
         // recurse, after the previous plotting
         this.suggestedRwAppend(till_none)
       }
-      
+
       this.suggestedRwInProgress = false
       this.dict2Auto = clone(this.dict2tmp) // copy to graph
 
     }
-    
+
   },
-  
+
   // https://vuejs.org/v2/guide/computed.html#Computed-vs-Watched-Property
   computed: {
-    
+
     "dot1Auto": function() {
       if(!this.dict1Auto) return ""
-      return lr.dict2dot_main(this.dict1Auto, this.extendedLabels) // dot file before re-writes
+
+      try {
+        return lr.dict2dot_main(this.dict1Auto, this.extendedLabels) // dot file before re-writes
+      } catch (e) {
+        // statements to handle any exceptions
+        console.error(e);
+        this.error1Msg = e;
+        return
+      }
     },
-    
+
     "dot2Auto": function() {
       if(!this.dict2Auto) return ""
-      return lr.dict2dot_main(this.dict2Auto, this.extendedLabels) // dot file after re-writes
+
+      try {
+        return lr.dict2dot_main(this.dict2Auto, this.extendedLabels) // dot file after re-writes
+      } catch (e) {
+        // statements to handle any exceptions
+        console.error(e);
+        this.error2Msg = e;
+        return
+      }
+
     },
-    
+
     "dict1FromJsAuto": function () {
 
       if(this.jsAuto == "") {
         return ""
       }
-      
+
       var dot_in = this.jsAuto;
       //dot_in = 'digraph { a -> b }' // for testing
       //dot_in = pred_arrow_dot // for testing
-      
+
       try {
-        
+
         dot_in = eval(dot_in);
         var lambda_dict = lr.jsjson2dict_main(esprima.parse(dot_in.toString()));
         //var lambda_dot = lr.dict2dot_main(lambda_dict) // dot file before re-writes
@@ -312,13 +330,13 @@ var app = new Vue({
         this.error1Msg = e;
         return
       }
-      
+
       //return lambda_dot;
       return lambda_dict; // return dict even if dot is available
-      
+
     },
-    
-    
+
+
     "dict2FromDict1Auto": function() {
       // compute new graph from re-writes (rwAuto)
       try {
@@ -330,26 +348,26 @@ var app = new Vue({
         return
       }
     },
-    
-    
+
+
     "rwVal": function() {
       return gr.txt2array(this.rwTxt)
     },
-    
-    
+
+
     "suggestedRwAll": function() {
       // Note that this is tied to dict2tmp and not dict2FromDict1Auto and not dict2Auto
       // This allows me to perform single-step rewrites while updating dict2tmp without drawing the graph
       // in the `suggestedRwApply()` function
-      
+
       if(!this.dict2tmp) return []
-      
+
       // filter for edges between L and A, and suggest beta moves on them
       var beta_listStr = []
       this.dict2tmp.edges.forEach(e1 => {
         // if not L-A, ignore
         if(!(e1.from.type=="L" && e1.to.type=="A")) return
-        
+
         // if L has no input, ignore
         var L_in = this.dict2tmp.edges.filter(e2 => e2.to.id == e1.from.id)
         if(L_in.length == 0) return
@@ -357,11 +375,11 @@ var app = new Vue({
         // if A has no output, ignore
         var A_out = this.dict2tmp.edges.filter(e2 => e2.from.id == e1.to.id)
         if(A_out.length == 0) return
-        
+
         // append
         beta_listStr = beta_listStr.concat(["beta " + e1.from.id + " " + e1.to.id])
       })
-      
+
       // filter for L nodes that have a fan-in or fan-out
       var dist_listStr = []
       var self = this
@@ -370,36 +388,36 @@ var app = new Vue({
         var edges_mi = self.dict2tmp.edges.filter(edge => edge.to.id == node_center.id)
         var edges_lo = self.dict2tmp.edges.filter(edge => edge.from.id == node_center.id && edge.from.portname=="l")
         var edges_ro = self.dict2tmp.edges.filter(edge => edge.from.id == node_center.id && edge.from.portname=="r")
-        
+
         if(edges_mi.length <= 1 && edges_lo.length <= 1 && edges_ro.length <= 1) return null
-        
+
         // 3x all
         // dist_listStr = dist_listStr.concat(["dist all " + node_center.id + " all all"])
-        
+
         // now, spell out the nodes
         edges_mi.forEach(edge_mi => {
           node_mi = edge_mi.from
           if(node_mi.type != 'L' && node_mi.type != 'A') return
-          
+
           // 2x all
           // dist_listStr = dist_listStr.concat(["dist " + node_mi.id + " " + node_center.id + " all all"])
-          
+
           edges_lo.forEach(edge_lo => {
             node_lo = edge_lo.to
             if(node_lo.type != 'L' && node_lo.type != 'A') return
-            
+
             // 2x all
             // dist_listStr = dist_listStr.concat(["dist all " + node_center.id + " " + node_lo.id +  " all"])
             // 1x all
             // dist_listStr = dist_listStr.concat(["dist " + node_mi.id + " " + node_center.id + " " + node_lo.id +  " all"])
-            
+
             edges_ro.forEach(edge_ro => {
               node_ro = edge_ro.to
               if(node_ro.type != 'L' && node_ro.type != 'A') return
-              
+
               // 2x all
               // dist_listStr = dist_listStr.concat(["dist all " + node_center.id + " all " + node_ro.id + ""])
-              
+
               // 1x all
               // dist_listStr = dist_listStr.concat(["dist " + node_mi.id + " " + node_center.id + " all " + node_ro.id])
 
@@ -411,95 +429,95 @@ var app = new Vue({
             })
           })
         })
-        
+
       })
-      
+
       // return
       return beta_listStr.concat(dist_listStr)
     }
-    
+
   },
-  
+
   watch: {
-    
-    "dict1Auto": function() {
+
+    "dot1Auto": function() {
       // cannot move this to a vue.js computed
       // because it returns its value inside a promise
-      if(!this.dict1Auto) return ""
-      
-      var self = this;
-      var lambda_dict = this.dict1Auto
-      
-      // convert to dot
-      try {
-        var lambda_dot = lr.dict2dot_main(lambda_dict, this.extendedLabels)
-      } catch (e) {
-        // statements to handle any exceptions
-        console.error(e);
-        this.error1Msg = e;
-        return
-      }
+      if(!this.dot1Auto) return
 
-      // convert to graph
-      var viz = new Viz();
-      viz.renderSVGElement(lambda_dot)
-        .then(function(element) {
-          /*
-          // for responsive SVG https://stackoverflow.com/a/25978286
-          element.preserveAspectRatio = "xMinYMin meet"
-          element.viewBox = "0 0 600 400"
-          element.classList.add("svg-content-responsive");
-          element.setAttribute("height", "");
-          element.setAttribute("width", "");
+      var self = this
+      switch(this.graphManager) {
+        case "vizjs":
+          // convert to graph
+          var viz = new Viz();
+          viz.renderSVGElement(this.dot1Auto)
+            .then(function(element) {
+              self.graph1Svg = element;
+            })
+            .catch(error => {
+              // Create a new Viz instance (@see Caveats page for more info)
+              viz = new Viz();
+              self.error1Msg = error
+              console.error(error);
+            });
+          break
 
-          console.log("svg element", element)
-          */
+        case "d3js":
+          console.log("dot1, d3js")
+          var svgElem = gvd3.renderSVGElement(this.dict1Auto)
+          self.graph1Svg = svgElem
+          break
 
-          // return
-          self.graph1Svg = element;
-        })
-        .catch(error => {
-          // Create a new Viz instance (@see Caveats page for more info)
-          viz = new Viz();
+        default:
+          var e = "Unsupported graph visualization manager"
+          // throw e
           self.error1Msg = error
           console.error(error);
-        });
+
+      }
     },
 
-    
-    "dict2Auto": function() {
+
+    "dot2Auto": function() {
       // cannot move this to a vue.js computed
       // because it returns its value inside a promise
-      
-      if(!this.dict2Auto) return
-      
+      if(!this.dot2Auto) return
+
       var self = this;
-      var lambda_dict = this.dict2Auto
-      
-      // convert to dot
-      try {
-        var lambda_dot = lr.dict2dot_main(lambda_dict, this.extendedLabels)
-      } catch (e) {
-        // statements to handle any exceptions
-        console.error(e);
-        this.error2Msg = e;
-        return
+
+      switch(this.graphManager) {
+        case "vizjs":
+          // convert to graph
+          var viz = new Viz();
+          viz.renderSVGElement(this.dot2Auto)
+            .then(function(element) {
+              self.graph2Svg = element;
+            })
+            .catch(error => {
+              // Create a new Viz instance (@see Caveats page for more info)
+              viz = new Viz();
+              self.error2Msg = error
+              console.error(error);
+            });
+          break
+
+        case "d3js":
+          console.log("dot2 d3js")
+          var svgElem = gvd3.renderSVGElement(this.dict2Auto)
+          self.graph1Svg = svgElem
+          break
+
+        default:
+          var e = "Unsupported graph visualization manager"
+          // throw e
+          self.error1Msg = error
+          console.error(error);
+
       }
 
-      // convert to graph
-      var viz = new Viz();
-      viz.renderSVGElement(lambda_dot)
-        .then(function(element) {
-          self.graph2Svg = element;
-        })
-        .catch(error => {
-          // Create a new Viz instance (@see Caveats page for more info)
-          viz = new Viz();
-          self.error2Msg = error
-          console.error(error);
-        });
+
     }
-    
+
   }
 })
 
