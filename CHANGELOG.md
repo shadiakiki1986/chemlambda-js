@@ -23,6 +23,10 @@ Version 0.0.5 (2019-04-17)
 * enhancement: example of predecessor(three) now comes with pre-written re-writes
 * feature: allow multiple edges to be added/deleted in re-write
 * feature: add extended labels checkbox
+* feature: add suggested rewrites
+* feature: allow to step once with selected/random re-write or roll out 50
+    * this is still WIP and hangs
+    * the application of the graph with the re-writes is inefficient because for each step it computes it from scratch
 
 
 Version 0.0.4 (2019-04-1{5,6,7})

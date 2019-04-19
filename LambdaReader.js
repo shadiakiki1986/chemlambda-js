@@ -117,11 +117,14 @@ function LambdaReader() {
     this.newNodeId = function(nodetype) {
       var allIds = this.globalIdRegister.filter(x => x.startsWith(nodetype))
       newId = nodetype + '0'
-      MAXNUM = 100 // circuit breaker
+      MAXNUM = 1000 // circuit breaker
       for (var i = 0;
         (i < MAXNUM) && (allIds.indexOf(newId) != -1); i++) {
         newId = '' + nodetype + i;
       }
+      
+      if(i==MAXNUM) throw "The limit of maximum number of node IDs has been hit"
+      
       // append to global register
       this.globalIdRegister = this.globalIdRegister.concat([newId])
 

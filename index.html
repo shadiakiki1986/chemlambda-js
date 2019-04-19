@@ -381,6 +381,40 @@
         
         <!-- column 2 for graph before/after re-writes -->
         <div class="col-8">
+          
+          <div>
+            <form>
+              Suggested re-writes:
+              <span v-if="suggestedRwAll.length == 0">None</span>
+              <span v-if="suggestedRwAll.length  > 0">
+                <select v-model="suggestedRwSelected">
+                  <option v-for="item in suggestedRwAll" v-bind:value="item">{{item}}</option>
+                </select>
+              </span>
+                
+              Choose
+              <select v-model="suggestedRwMethod" :disabled="suggestedRwAll.length==0">
+                <option value="selected">Selected</option>
+                <option value="random">Random</option>
+              </select>
+              
+              <button type="button" @click="suggestedRwAppend(false)" class="btn btn-sm btn-info" :disabled="(!suggestedRwSelected && suggestedRwMethod=='selected') || suggestedRwAll.length==0">
+                Step once
+              </button>
+              
+              &nbsp;
+              
+              <button type="button" @click="suggestedRwAppend(true)" class="btn btn-sm btn-info" :disabled="suggestedRwMethod!='random' || suggestedRwAll.length==0">
+                Roll out {{suggestedRwMax}}
+              </button>
+              
+              &nbsp;
+              
+              Step {{suggestedRwStep}}
+              
+            </form>
+          </div>
+
 
           <div v-if="!error1Msg && (graph1Visible || rwAuto.length==0) && !!dot1Auto">
             Graph 
@@ -411,8 +445,7 @@
               after
             </button>
             re-writes
-            
-            
+
             <small>
               &nbsp;
               &nbsp;

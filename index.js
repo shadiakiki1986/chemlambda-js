@@ -84,6 +84,12 @@ function clone(assArray) {
   return JSON.parse(JSON.stringify(assArray))
 }
 
+// https://stackoverflow.com/a/7228322/4126114
+function randomIntFromInterval(min,max) // min and max included
+{
+    return Math.floor(Math.random()*(max-min+1)+min);
+}
+
 
 var app = new Vue({
   el: '#app',
@@ -113,7 +119,13 @@ var app = new Vue({
     
     "graph1Visible": true,
     
-    "extendedLabels": true
+    "extendedLabels": true,
+    "suggestedRwSelected": "",
+    "suggestedRwStep": 0,
+    
+    "suggestedRwMax": 50, // maximum steps to roll out each time
+    "suggestedRwMethod": "",
+    "dict2FromDict1Callback": false
   },
   
   methods: {
@@ -135,6 +147,7 @@ var app = new Vue({
       this.rwAuto = clone([])
       this.dict2Auto = "" // clone(this.dict1Auto) // without any re-writes
       lr.globalIdRegister = [] // to re-issue IDs
+      this.suggestedRwStep = 0
     },
     
     jsExOnChange: function() {
@@ -186,6 +199,48 @@ var app = new Vue({
       this.dict2Auto = clone(this.dict2FromDict1Auto); // with re-writes
       this.graph1Visible = false
       this.graph2Visible = true
+    },
+    
+    suggestedRwAppend: function(till_none) {
+      // do nothing if there are no suggestions
+      if(this.suggestedRwAll.length == 0) return
+      
+      // increment
+      this.suggestedRwStep += 1
+      
+      // check method
+      switch(this.suggestedRwMethod) {
+        case "selected":
+          // just append to the re-writes the selected value
+          this.rwTxt += '\n' + this.suggestedRwSelected
+          break
+        case "random":
+          // choose a random entry from the suggestions
+          var idx = randomIntFromInterval(0, this.suggestedRwAll.length-1)
+          // append it
+          this.rwTxt += '\n' + this.suggestedRwAll[idx]
+          break
+        default:
+          throw "Unsupported suggestion method " + this.suggestedRwMethod
+      }
+      
+      // now that we have a new entry in the re-writes, re-generate the graph
+      var self = this
+      this.dict2FromDict1Callback = function() {
+        console.log("inside callback")
+        // stop the callback since fulfilled
+        self.dict2FromDict1Callback = false
+        
+        
+        // loop if requested, and stop if reached a multiple of the max
+        if(!till_none) return
+        if(self.suggestedRwMethod!='random') return
+        if(self.suggestedRwStep % self.suggestedRwMax == 0) return
+        
+        self.suggestedRwAppend(till_none)
+      }
+      this.rwAuto = clone(this.rwVal)
+      this.dict2Auto = clone(this.dict2FromDict1Auto); // with re-writes
     }
     
   },
@@ -239,24 +294,24 @@ var app = new Vue({
       // init
       var lambda_dict = clone(this.dict1Auto)
       
-      if(this.rwAuto.length==0) {
+      if(this.rwAuto.length==0 || this.rwAuto.filter(x => x!=null).length == 0) {
         // no re-writes
+        if(this.dict2FromDict1Callback) setTimeout(this.dict2FromDict1Callback, 1)
         return lambda_dict;
       }
-      
-      if(this.rwAuto.filter(x => x!=null).length == 0) {
-        // no re-writes
-        return lambda_dict;
-      }
-      
-      // convert edges array to associative array
-      var edges_keys = lambda_dict.edges.map(lr.edgeDict2dot);
-      var edges_dict = createAssociativeArray(edges_keys, lambda_dict.edges)
-      
+
       // pass dict through re-writes
       this.rwAuto.forEach(rwi => {
         if(rwi == null) return
+
+        // convert edges array to associative array
+        // Note that these 2 lines need to be inside the forEach
+        // because the graph evoloves as the re-writes are made
+        // and hance there are possibly new nodes
+        var edges_keys = lambda_dict.edges.map(lr.edgeDict2dot);
+        var edges_dict = createAssociativeArray(edges_keys, lambda_dict.edges)
         
+        // check re-write type and apply the corresponding actions
         switch(rwi.type) {
           case "beta":
             // e.g. beta L1 A1
@@ -460,12 +515,17 @@ var app = new Vue({
           default:
             throw "Unsupported move " + rwi.type
         }
+        
+        // convert edges dict back to array and store in main variable
+        // Note that this needs to be inside the forEach instead of outside
+        // so that the graph would evolve. Check related note at beginning
+        // of forEach section
+        lambda_dict.edges = Object.keys(edges_dict).map(k => edges_dict[k])
+
       })
       
-      // convert edges dict back to array and store in main variable
-      lambda_dict.edges = Object.keys(edges_dict).map(k => edges_dict[k])
-      
       // return
+      if(this.dict2FromDict1Callback) setTimeout(this.dict2FromDict1Callback, 1)
       return lambda_dict
     },
     
@@ -510,6 +570,76 @@ var app = new Vue({
         }
         
       }).filter(l => !!l)
+    },
+    
+    "suggestedRwAll": function() {
+      if(!this.dict2Auto) return []
+      
+      // filter for edges between L and A, and suggest beta moves on them
+      var beta_listStr = []
+      this.dict2Auto.edges.forEach(e1 => {
+        // if not L-A, ignore
+        if(!(e1.from.type=="L" && e1.to.type=="A")) return
+        
+        // if L has no input, ignore
+        var L_in = this.dict2Auto.edges.filter(e2 => e2.to.id == e1.from.id)
+        if(L_in.length == 0) return
+
+        // if A has no output, ignore
+        var A_out = this.dict2Auto.edges.filter(e2 => e2.from.id == e1.to.id)
+        if(A_out.length == 0) return
+        
+        // append
+        beta_listStr = beta_listStr.concat(["beta " + e1.from.id + " " + e1.to.id])
+      })
+      
+      // filter for L nodes that have a fan-in or fan-out
+      var dist_listStr = []
+      this.dict2Auto.nodes.forEach(node_center => {
+        if(node_center.type != 'L') return
+        var edges_mi = this.dict2Auto.edges.filter(edge => edge.to.id == node_center.id)
+        var edges_lo = this.dict2Auto.edges.filter(edge => edge.from.id == node_center.id && edge.from.portname=="l")
+        var edges_ro = this.dict2Auto.edges.filter(edge => edge.from.id == node_center.id && edge.from.portname=="r")
+        
+        if(edges_mi.length <= 1 && edges_lo.length <= 1 && edges_ro.length <= 1) return null
+        
+        // 3x all
+        dist_listStr = dist_listStr.concat(["dist all " + node_center.id + " all all"])
+        
+        // now, spell out the nodes
+        edges_mi.forEach(edge_mi => {
+          node_mi = edge_mi.from
+          // 2x all
+          dist_listStr = dist_listStr.concat(["dist " + node_mi.id + " " + node_center.id + " all all"])
+          
+          edges_lo.forEach(edge_lo => {
+            node_lo = edge_lo.to
+            // 2x all
+            dist_listStr = dist_listStr.concat(["dist all " + node_center.id + " " + node_lo.id +  " all"])
+            // 1x all
+            dist_listStr = dist_listStr.concat(["dist " + node_mi.id + " " + node_center.id + " " + node_lo.id +  " all"])
+            
+            edges_ro.forEach(edge_ro => {
+              node_ro = edge_ro.to
+              // 2x all
+              dist_listStr = dist_listStr.concat(["dist all " + node_center.id + " all " + node_ro.id + ""])
+              
+              // 1x all
+              dist_listStr = dist_listStr.concat(["dist " + node_mi.id + " " + node_center.id + " all " + node_ro.id])
+
+              // 1x all
+              dist_listStr = dist_listStr.concat(["dist all " + node_center.id + " " + node_lo.id +  " " + node_ro.id])
+
+              // 0x all
+              dist_listStr = dist_listStr.concat(["dist " + node_mi.id + " " + node_center.id + " " + node_lo.id +  " " + node_ro.id])
+            })
+          })
+        })
+        
+      })
+      
+      // return
+      return beta_listStr.concat(dist_listStr)
     }
     
   },
@@ -593,7 +723,7 @@ var app = new Vue({
           console.error(error);
         });
     }
-
+    
   }
 })
 
