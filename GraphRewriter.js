@@ -20,14 +20,14 @@ function GraphRewriter() {
         }
         return arr;
     }
-    
+
     this.apply_beta = function(lambda_dict, edges_dict, rwi) {
             // e.g. beta L1 A1
 
             // get nodes
             var n1 = lambda_dict.nodes.filter(node => node.id==rwi.n1)
             var n2 = lambda_dict.nodes.filter(node => node.id==rwi.n2)
-            
+
             // sanity checks
             if(n1.length==0) throw ("Rewrite error: Node " + rwi.n1 + " not found")
             if(n2.length==0) throw ("Rewrite error: Node " + rwi.n2 + " not found")
@@ -37,11 +37,11 @@ function GraphRewriter() {
             // take first element of each array
             n1 = n1[0]
             n2 = n2[0]
-            
+
             // check types
             if(n1.type!='L') throw ("Rewrite error: 1st node for beta is expected to have type L. Got '" + n1.type + "' instead")
             if(n2.type!='A') throw ("Rewrite error: 2nd node for beta is expected to have type A. Got '" + n2.type + "' instead")
-            
+
             // identify edges
             var edges_labeled = {
               "L_in": Object.keys(edges_dict).filter(k => edges_dict[k].to.id==rwi.n1),
@@ -54,22 +54,23 @@ function GraphRewriter() {
             var el1 = edges_labeled["L_in"].map(L_in => {
                 return edges_labeled["A_out"].map(A_out => {
                   return {
-                    'from': edges_dict[L_in].from, 
+                    'from': edges_dict[L_in].from,
                     'to': edges_dict[A_out].to
                   }
                 })
               }).reduce((a,b)=>a.concat(b), [])
-              
+
             var el2 = edges_labeled["A_in_notL"].map(A_in_notL => {
                 return edges_labeled["L_out_notA"].map(L_out_notA => {
                   return {
-                    'from': edges_dict[A_in_notL].from, 
+                    'from': edges_dict[A_in_notL].from,
                     'to': edges_dict[L_out_notA].to
                   }
                 })
               }).reduce((a,b)=>a.concat(b), [])
-              
+
             //console.log("edges labeled", edges_labeled)
+            var lr = new LambdaReader()
             var el3 = [el1, el2].reduce((a,b)=>a.concat(b), [])
             el3.forEach(e => {
               var k = lr.edgeDict2dot(e)
@@ -82,11 +83,11 @@ function GraphRewriter() {
                 delete edges_dict[k2]
               })
             })
-            
+
             return edges_dict
     }
-    
-    
+
+
     this.apply_dist = function(lambda_dict, edges_dict, rwi) {
             // e.g. dist L1 L2 L3 L4
 
@@ -95,13 +96,13 @@ function GraphRewriter() {
             if(rwi.n_center == null) throw("Rewrite error: Move " + rwi.type + " received node 2 == null. Aborting")
             if(rwi.n_left == null) throw("Rewrite error: Move " + rwi.type + " received node 3 == null. Aborting")
             if(rwi.n_right == null) throw("Rewrite error: Move " + rwi.type + " received node 4 == null. Aborting")
-            
+
             // get node
             var n_in = (rwi.n_in=="all") ? "all" : lambda_dict.nodes.filter(node => node.id==rwi.n_in)
             var n_center = lambda_dict.nodes.filter(node => node.id==rwi.n_center)
             var n_left = (rwi.n_left=="all") ? "all" : lambda_dict.nodes.filter(node => node.id==rwi.n_left)
             var n_right = (rwi.n_right=="all") ? "all" : lambda_dict.nodes.filter(node => node.id==rwi.n_right)
-            
+
             // sanity checks
             if(n_in!="all") {
               if(n_in.length==0) throw ("Rewrite error: Node " + rwi.n_in + " not found")
@@ -137,13 +138,13 @@ function GraphRewriter() {
               "L_out_r": Object.keys(edges_dict).filter(k => (edges_dict[k].from.id==n_center.id )&&(edges_dict[k].from.portname=="r")),
               "L_out_l": Object.keys(edges_dict).filter(k => (edges_dict[k].from.id==n_center.id )&&(edges_dict[k].from.portname=="l"))
             }
-            
+
             // identify branching ports
             var is_branch = []
             Object.keys(edges_labeled).forEach(k => {
               is_branch[k] = (edges_labeled[k].length > 1)
             })
-            
+
             // require at least 1 output to be branching, otherwise what's the point of dist?
             if(Object.keys(is_branch).filter(k => is_branch[k]).filter(x => x).length == 0) {
               throw "For 'dist', at least one port on the central node is required to be branching. Aborting for " + JSON.stringify(rwi)
@@ -155,38 +156,39 @@ function GraphRewriter() {
             if(n_right!="all") edges_labeled["L_out_r"] = edges_labeled["L_out_r"].filter(k => edges_dict[k].to.id  ==rwi.n_right)
 
             // add edges
+            var lr = new LambdaReader()
             edges_labeled["L_in"].map(L_in => {
               return edges_labeled["L_out_r"].map(L_out_r => {
                 return edges_labeled["L_out_l"].map(L_out_l => {
-                  // clone the old L node
+                  // utils.clone the old L node
                   var old_L_id = rwi.n_center
                   var old_L_node = lambda_dict.nodes.filter(n => n.id==old_L_id)
                   if(old_L_node.length == 0) throw "Failed to identify node " + old_L_id + ". Found 0"
                   if(old_L_node.length  > 1) throw "Failed to identify node " + old_L_id + ". Found > 1"
                   old_L_node = old_L_node[0]
-                  
+
                   var new_L_id = lr.newNodeId("L")
-                  var new_L_node = clone(old_L_node)
+                  var new_L_node = utils.clone(old_L_node)
                   new_L_node.id = new_L_id
                   new_L_node.from = rwi.toString()
-                  
+
                   // add the new L node to the list of nodes
                   lambda_dict.nodes = lambda_dict.nodes.concat([new_L_node])
-                  
+
                   // add the new L node's edges to the list of edges
                   // Notice that none of the outputs here are branched
                   var new_L_l = {"type": "L", "id": new_L_id, "portname": "l", "inout": "o"}
                   var new_L_m = {"type": "L", "id": new_L_id, "portname": "m", "inout": "i"}
                   var new_L_r = {"type": "L", "id": new_L_id, "portname": "r", "inout": "o"}
-  
+
                   return [
-                    { 'from': edges_dict[L_in].from, 
+                    { 'from': edges_dict[L_in].from,
                       'to': new_L_m
                     },
-                    { 'from': new_L_l, 
+                    { 'from': new_L_l,
                       'to': edges_dict[L_out_l].to
                     },
-                    { 'from': new_L_r, 
+                    { 'from': new_L_r,
                       'to': edges_dict[L_out_r].to
                     },
                   ]
@@ -209,7 +211,7 @@ function GraphRewriter() {
 
             return {"edges_dict": edges_dict, "lambda_dict": lambda_dict}
     }
-    
+
 
     this.apply_rewrites = function(lambda_dict, rwAuto) {
       // compute new graph from re-writes (rwAuto)
@@ -221,9 +223,10 @@ function GraphRewriter() {
       }
 
       // pass dict through re-writes
+      var lr = new LambdaReader()
       rwAuto.forEach(rwi => {
         if(rwi == null) return
-        
+
         //console.log("applying re-write ", JSON.stringify(rwi))
         //console.log("lambda_dict", lambda_dict.nodes.map(x=>x.id))
 
@@ -233,23 +236,23 @@ function GraphRewriter() {
         // and hance there are possibly new nodes
         var edges_keys = lambda_dict.edges.map(lr.edgeDict2dot);
         var edges_dict = createAssociativeArray(edges_keys, lambda_dict.edges)
-        
+
         // check re-write type and apply the corresponding actions
         switch(rwi.type) {
           case "beta":
             edges_dict = this.apply_beta(lambda_dict, edges_dict, rwi)
             break;
-            
+
           case "dist":
             var o = this.apply_dist(lambda_dict, edges_dict, rwi)
             edges_dict = o.edges_dict
             lambda_dict = o.lambda_dict
             break;
-            
+
           default:
             throw "Unsupported move " + rwi.type
         }
-        
+
         // convert edges dict back to array and store in main variable
         // Note that this needs to be inside the forEach instead of outside
         // so that the graph would evolve. Check related note at beginning
@@ -257,40 +260,40 @@ function GraphRewriter() {
         lambda_dict.edges = Object.keys(edges_dict).map(k => edges_dict[k])
 
       })
-      
+
       // return
       //if(this.dict2FromDict1Callback) setTimeout(this.dict2FromDict1Callback, 1)
       return lambda_dict
     }
-    
-    
+
+
     this.txt2array = function(rwTxt) {
       var rwVal = rwTxt.split("\n").map(l => l.trim()).filter(l => !!l)
-      
+
       rwVal = rwVal.map(l => {
         // cut off everything after a # (as comment character)
         // https://stackoverflow.com/a/4059018/4126114
         if(l.indexOf("#") != -1) {
           l = l.substr(0, l.indexOf("#"));
         }
-        
+
         // split on space and drop empty words (due to consecutive spaces)
         var row_all = l.split(" ").filter(w => w.length > 0)
         if(row_all.length == 0) return null // these are filtered out later
-        
+
         // sanity check of length based on type
         var row_type = row_all[0]
         switch(row_type) {
           case "beta":
             if(row_all.length != 3) throw "beta should have 2 arguments. " + row_all.length + " found"
-            
+
             var out = {
               'type': row_type,
               'n1': row_all[1],
               'n2': row_all[2]
             }
             return out
-            break
+
           case "dist":
             if(row_all.length != 5) throw "dist should have 4 arguments. " + row_all.length + " found"
             var out = {
@@ -301,20 +304,20 @@ function GraphRewriter() {
               'n_right': row_all[4]
             }
             return out
-            break
+
           default:
             throw "Unsupported command " + row_type + " encountered. Only beta and dist supported ATM"
         }
-        
+
       })
       rwVal = rwVal.filter(l => !!l)
       return rwVal
     }
 
-    
+
     return this
 
 }
 
 
-module.exports = LambdaReader()
+module.exports = GraphRewriter()

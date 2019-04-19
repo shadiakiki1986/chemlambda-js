@@ -6,6 +6,7 @@ var lr = new LambdaReader()
 var lt = new LambdaTerms()
 var gr = new GraphRewriter()
 var gvd3 = new GraphVisualizerD3js()
+var utils = new Utils()
 
 // set options of dropdown
 // https://stackoverflow.com/a/9895164/4126114
@@ -64,16 +65,6 @@ beta L8 A2
 ];
 
 
-// https://stackoverflow.com/a/21147462
-function clone(assArray) {
-  return JSON.parse(JSON.stringify(assArray))
-}
-
-// https://stackoverflow.com/a/7228322/4126114
-function randomIntFromInterval(min,max) // min and max included
-{
-    return Math.floor(Math.random()*(max-min+1)+min);
-}
 
 
 var app = new Vue({
@@ -133,9 +124,9 @@ var app = new Vue({
       this.dict1Auto = ""
       this.graph1Visible = true
       this.graph2Visible = false
-      this.rwAuto = clone([])
+      this.rwAuto = utils.clone([])
       this.dict2tmp = ""
-      this.dict2Auto = "" // clone(this.dict1Auto) // without any re-writes
+      this.dict2Auto = "" // utils.clone(this.dict1Auto) // without any re-writes
       lr.globalIdRegister = [] // to re-issue IDs
       this.suggestedRwStep = 0
       this.suggestedRwHistory = []
@@ -148,7 +139,7 @@ var app = new Vue({
       this.inTitle = this.jsExSelected.title
       this.inDescription = this.jsExSelected.description
       this.inJavascript = this.jsExSelected.javascript
-      this.jsAuto = this.jsExSelected.javascript; // this was clone() eventhough it was just text
+      this.jsAuto = this.jsExSelected.javascript; // this was utils.clone() eventhough it was just text
 
       if("rewrites" in this.jsExSelected)  {
         this.rwTxt = this.jsExSelected.rewrites
@@ -160,7 +151,7 @@ var app = new Vue({
     pushDot: function() {
       this.error1Msg = ""
       this.error2Msg = ""
-      this.dict1Auto = clone(this.dot1Manual)
+      this.dict1Auto = utils.clone(this.dot1Manual)
 
       this.graph1Visible = true
       this.graph2Visible = false
@@ -171,7 +162,7 @@ var app = new Vue({
         this.rwTxt = ""
       }
 
-      this.dict2Auto = "" // clone(this.dict1Auto) // without any re-writes
+      this.dict2Auto = "" // utils.clone(this.dict1Auto) // without any re-writes
     },
     */
 
@@ -180,17 +171,26 @@ var app = new Vue({
 
       if(this.dot1From=='lambda') {
         this.jsAuto = this.inJavascript;
-        this.dict1Auto = clone(this.dict1FromJsAuto)
+        this.dict1Auto = utils.clone(this.dict1FromJsAuto)
       } else {
-        this.dict1Auto = clone(this.dot1Manual) // FIXME shouldnt set dot to dict
+        this.dict1Auto = utils.clone(this.dot1Manual) // FIXME shouldnt set dot to dict
       }
 
-      this.rwAuto = clone(this.rwVal)
+      this.rwAuto = utils.clone(this.rwVal)
+
       // final step
-      this.dict2tmp = clone(this.dict2FromDict1Auto); // with re-writes
-      this.dict2Auto = clone(this.dict2tmp) // here we can copy right away and plot
-      this.graph1Visible = false
-      this.graph2Visible = true
+      try {
+        this.dict2tmp = utils.clone(this.dict2FromDict1Auto); // with re-writes
+        this.dict2Auto = utils.clone(this.dict2tmp) // here we can copy right away and plot
+        this.graph1Visible = false
+        this.graph2Visible = true
+      } catch (e) {
+        // statements to handle any exceptions
+        console.error(e);
+        this.error2Msg = e;
+        return []
+      }
+
     },
 
     suggestedRwAppend: function(till_none) {
@@ -212,7 +212,7 @@ var app = new Vue({
           break
         case "random":
           // choose a random entry from the suggestions
-          var idx = randomIntFromInterval(0, this.suggestedRwAll.length-1)
+          var idx = utils.randomIntFromInterval(0, this.suggestedRwAll.length-1)
           // append it
           rwCurTxt = this.suggestedRwAll[idx]
           break
@@ -235,14 +235,14 @@ var app = new Vue({
         if(!till_none || self.suggestedRwAll.length == 0 || self.suggestedRwStep % self.suggestedRwMax == 0) {
           // plot with re-writes
           console.log("plotting with rewrites", self.dict2FromDict1Auto)
-          self.dict2Auto = clone(self.dict2FromDict1Auto);
+          self.dict2Auto = utils.clone(self.dict2FromDict1Auto);
           return
         }
 
         // recurse, without plotting yet
         self.suggestedRwAppend(till_none)
       }
-      this.rwAuto = clone(this.rwVal)
+      this.rwAuto = utils.clone(this.rwVal)
       */
 
       // method 1: complete re-calculation of initial graph + re-writes and graphing
@@ -256,8 +256,8 @@ var app = new Vue({
       try {
         //console.log("roll out single step ", rwCurTxt)
         var rwCurVal = gr.txt2array(rwCurTxt)
-        var lambda_dict = gr.apply_rewrites(clone(this.dict2tmp), rwCurVal) // notice that this inputs dict2tmp and below updates it too
-        this.dict2tmp = clone(lambda_dict)
+        var lambda_dict = gr.apply_rewrites(utils.clone(this.dict2tmp), rwCurVal) // notice that this inputs dict2tmp and below updates it too
+        this.dict2tmp = utils.clone(lambda_dict)
       } catch (e) {
         // statements to handle any exceptions
         console.error(e);
@@ -271,7 +271,7 @@ var app = new Vue({
       }
 
       this.suggestedRwInProgress = false
-      this.dict2Auto = clone(this.dict2tmp) // copy to graph
+      this.dict2Auto = utils.clone(this.dict2tmp) // copy to graph
 
     }
 
@@ -339,14 +339,7 @@ var app = new Vue({
 
     "dict2FromDict1Auto": function() {
       // compute new graph from re-writes (rwAuto)
-      try {
-        return gr.apply_rewrites(clone(this.dict1Auto), this.rwAuto)
-      } catch (e) {
-        // statements to handle any exceptions
-        console.error(e);
-        this.error2Msg = e;
-        return
-      }
+      return gr.apply_rewrites(utils.clone(this.dict1Auto), this.rwAuto)
     },
 
 
@@ -436,11 +429,35 @@ var app = new Vue({
       return beta_listStr.concat(dist_listStr)
     }
 
-  },
-
+  }
+  /*
+  no longer using watch here because it should actually watch 2 variables
+  Check below
   watch: {
+    "dot1Auto": ,
+    "dot2Auto":
+  }
+  */
+})
 
-    "dot1Auto": function() {
+
+/*
+Vue.config.errorHandler = function (err, vm, info) {
+  // handle error
+  // `info` is a Vue-specific error info, e.g. which lifecycle hook
+  // the error was found in. Only available in 2.2.0+
+  console.log("vuejs error handler")
+  console.log(info)
+  console.error(err)
+  app.error1Msg = err
+}
+*/
+
+// execute a function if both dot1Auto and graphManager change
+// https://github.com/vuejs/vue/issues/844
+app.$watch(
+    (vm) => (vm.dot1Auto, vm.graphManager, Object(new Date())),
+    function() {
       // cannot move this to a vue.js computed
       // because it returns its value inside a promise
       if(!this.dot1Auto) return
@@ -463,9 +480,14 @@ var app = new Vue({
           break
 
         case "d3js":
-          console.log("dot1, d3js")
           var svgElem = gvd3.renderSVGElement(this.dict1Auto)
-          self.graph1Svg = svgElem
+          var div = document.getElementById('graph1Cont');
+          // this div is sometimes missing due to the envelope v-if in the html
+          if(!!div) {
+            div.innerHTML = "";
+            div.appendChild(svgElem);
+          }
+
           break
 
         default:
@@ -475,10 +497,13 @@ var app = new Vue({
           console.error(error);
 
       }
-    },
+    }
+)
 
 
-    "dot2Auto": function() {
+app.$watch(
+    (vm) => (vm.dot2Auto, vm.graphManager, Object(new Date())),
+    function() {
       // cannot move this to a vue.js computed
       // because it returns its value inside a promise
       if(!this.dot2Auto) return
@@ -502,9 +527,13 @@ var app = new Vue({
           break
 
         case "d3js":
-          console.log("dot2 d3js")
           var svgElem = gvd3.renderSVGElement(this.dict2Auto)
-          self.graph1Svg = svgElem
+          var div = document.getElementById('graph2Cont');
+          // this div is sometimes not defined due to the envelope v-if
+          if(!!div) {
+            div.innerHTML = "";
+            div.appendChild(svgElem);
+          }
           break
 
         default:
@@ -517,19 +546,4 @@ var app = new Vue({
 
 
     }
-
-  }
-})
-
-
-/*
-Vue.config.errorHandler = function (err, vm, info) {
-  // handle error
-  // `info` is a Vue-specific error info, e.g. which lifecycle hook
-  // the error was found in. Only available in 2.2.0+
-  console.log("vuejs error handler")
-  console.log(info)
-  console.error(err)
-  app.error1Msg = err
-}
-*/
+)

@@ -13,9 +13,11 @@
 
 function LambdaReader() {
 
+    var utils = new Utils()
+
     // utility function to gather key-value pairs of "variables"
     this.var2dict = function(json_in, vardict1) {
-    
+
       // prepare variables dict
       var vardict2 = json_in.body.filter(b => (b.type == "VariableDeclaration"))
       vardict2 = vardict2.map(b => {
@@ -30,23 +32,23 @@ function LambdaReader() {
         total[current.k] = current.v;
         return total;
       }, {});
-    
+
       // merge vardict1 and vardict3
       // https://stackoverflow.com/a/43449825/4126114
       if (vardict1 != undefined) {
-    
+
         vardict3 = [vardict1, vardict3].reduce(function(r, o) {
           Object.keys(o).forEach(function(k) {
             r[k] = o[k];
           });
           return r;
         }, {});
-    
+
       }
-    
+
       return vardict3
     }
-    
+
     /////////////////
     // recursive function that can convert esprimajs json output to a string of lambda calculus
     // more libraries at https://stackoverflow.com/questions/2554519/javascript-parser-in-javascript
@@ -64,12 +66,12 @@ function LambdaReader() {
       switch (json_in.type) {
         case "Program":
           return this.jsjson2lambda(json_in.body[0], vardict1)
-    
+
         case "FunctionExpression": // peg.js
         case "FunctionDeclaration": // esprima
           var result = this.jsjson2lambda(json_in.body, vardict1)
           return "λ" + json_in.params[0].name + "." + result + ""
-    
+
         case "BlockStatement":
           var vardict3 = this.var2dict(json_in, vardict1)
           //console.log("vardict3", vardict3)
@@ -78,13 +80,13 @@ function LambdaReader() {
           retStmtDict = retStmtDict[0]
           retStmtStr = this.jsjson2lambda(retStmtDict, vardict3)
           return retStmtStr
-    
+
         case "ArrowFunctionExpression":
           return "λ" + json_in.params[0].name + "." + this.jsjson2lambda(json_in.body, vardict1, json_in.params[0].name)
-    
+
         case "ReturnStatement":
           return this.jsjson2lambda(json_in.argument, vardict1)
-    
+
         case "Identifier":
           if (vardict1 != undefined) {
             if (json_in.name in vardict1) {
@@ -92,25 +94,25 @@ function LambdaReader() {
             }
           }
           return json_in.name
-    
+
         case "CallExpression":
           return "(" + this.jsjson2lambda(json_in.callee, vardict1) + " " + this.jsjson2lambda(json_in.arguments[0], vardict1) + ")"
-    
+
         case "ExpressionStatement":
           return this.jsjson2lambda(json_in.expression, vardict1)
-    
+
         case "VariableDeclaration":
           //  return "var " + json_in.declarations[0].id.name + " = ..."
           throw "Should not get " + json_in.type + " because theyre filtered in FunctionExpression"
-    
+
         default:
           console.log(json_in)
           throw "Unsupported type1: " + json_in.type
       }
     }
-    
-    
-    
+
+
+
     //------------------------------------------------------------
     // utility function to get a new ID for a node
     this.globalIdRegister = [] // global list of IDs
@@ -122,17 +124,17 @@ function LambdaReader() {
         (i < MAXNUM) && (allIds.indexOf(newId) != -1); i++) {
         newId = '' + nodetype + i;
       }
-      
+
       if(i==MAXNUM) throw "The limit of maximum number of node IDs has been hit"
-      
+
       // append to global register
       this.globalIdRegister = this.globalIdRegister.concat([newId])
 
       //return
       return newId
     }
-    
-    
+
+
     //------------------------------------------------------------
     // similar to this.jsjson2lambda but for outputting mol file
     this.jsjson2dict_nodes = function(json_in, vardict1, paramname) {
@@ -143,26 +145,26 @@ function LambdaReader() {
         // first call should also clear the ID register
         this.globalIdRegister = []
       }
-    
+
       if (vardict1 == undefined) vardict1 = {}
       if (paramname == undefined) paramname = undefined // FIXME should use `null` isntead of `undefined`
-    
+
       //var i = json_in // .body[0]
       //console.log("convert", json_in.type, json_in)
       switch (json_in.type) {
         case "Program":
           var o_dict = this.jsjson2dict_nodes(json_in.body[0], vardict1)
           return o_dict
-    
+
         case "FunctionExpression": // peg.js
         case "FunctionDeclaration": // esprima
           // return this.jsjson2dict_nodes(json_in.body, vardict1, json_in.params[0].name)
-          
+
           var bodyLambdaDict = this.jsjson2dict_nodes(json_in.body, vardict1, json_in.params[0].name)
           // result = result[0] // keeping it as array below for compliance
           var envelopeLambdaStr = this.jsjson2lambda(json_in) // , vardict3, paramname)
           var bodyLambdaStr = this.jsjson2lambda(json_in.body)
-          
+
           var li1 = (json_in.id != null ? json_in.id.name : this.newNodeId("L"))
 
           var envelopeLambdaDict = {
@@ -173,37 +175,37 @@ function LambdaReader() {
             "r": envelopeLambdaStr,
             "from": json_in.type
           }
-    
+
           return bodyLambdaDict.concat([envelopeLambdaDict])
-    
+
         case "BlockStatement":
           //o2a1 = json_in.body.filter(b => (b.type == "VariableDeclaration")).map(b => this.jsjson2dict_nodes(b)).reduce((a, b) => a.concat(b), [])
-    
+
           // prepare variables dict key-value pairs
           var vardict3 = this.var2dict(json_in, vardict1)
-    
+
           // body dict
           var o2a1a = json_in.body.map(b => this.jsjson2dict_nodes(b, vardict3))
           var o2a1a = o2a1a.reduce((a, b) => a.concat(b), [])
-    
+
           // convert non-variables to dict, while passing the variables' dict
           //o2a1b = json_in.body.filter(b => (b.type != "VariableDeclaration")).map(b => this.jsjson2dict_nodes(b, vardict3)) // notice passing vardict arg
           //o2a1b = json_in.body.map(b => this.jsjson2dict_nodes(b, vardict3)) // notice passing vardict arg
           //o2a1b = o2a1b.reduce((a, b) => a.concat(b), [])
-    
+
           //retStmtDict = json_in.body.filter(b => (b.type == "ReturnStatement"))
           //if (retStmtDict.length == 0) throw "Block missing return statement!"
           //retStmtDict = retStmtDict[0] // take 1st
-    
+
           //retStmtLambdaStr = this.jsjson2lambda(retStmtDict, vardict3)
           //envelopeLambdaStr = this.jsjson2lambda(json_in, vardict3, paramname)
-    
+
           //var li1 = (json_in.id != null ? json_in.id.name : this.newNodeId("L"))
 
           // FIXME
           // Check if `li1` is unique otherwsise issue a new one
           // similar to `li2` below
-    
+
     /*
           //var o11 = li1 + " " + '[label="<lo> ' + lv1 + ' |{<mi> '+ o2b1 + '|' + li1 + '} | <ro> λ' + lv1 + '.'+ o2b1 + '"];'
           var o11 = {
@@ -214,13 +216,13 @@ function LambdaReader() {
             "r": envelopeLambdaStr,
             "from": json_in.type
           }*/
-    
+
           //return o2a1a.concat(o2a1b.concat([o11]))
           //return o2a1b.concat([o11])
           //return o2a1b
           //return [o11]
           return o2a1a
-    
+
         case "ArrowFunctionExpression":
           var bodyDict = this.jsjson2dict_nodes(json_in.body, vardict1, json_in.params[0].name)
           var bodyStr = this.jsjson2lambda(json_in.body, vardict1, json_in.params[0].name)
@@ -237,7 +239,7 @@ function LambdaReader() {
             "from": json_in.type
           }
           return bodyDict.concat([o12])
-    
+
         case "ReturnStatement":
         /*
           console.log(
@@ -246,21 +248,21 @@ function LambdaReader() {
             this.jsjson2dict_nodes(json_in.argument, vardict1)
           )*/
           return this.jsjson2dict_nodes(json_in.argument, vardict1)
-    
+
         case "Identifier":
           return []
           //return [{"type": "Identifier", "k": json_in.name}]
-    
+
         case "CallExpression":
           // var o1a = (  json_in.callee.type=="Identifier" ? json_in.callee.name : this.jsjson2dict_nodes(json_in.callee, vardict1)  )
           var o00 = this.jsjson2dict_nodes(json_in.callee, vardict1)
           var o1a = this.jsjson2lambda(json_in, vardict1)
           var o1b = this.jsjson2lambda(json_in.callee, vardict1)
-    
+
           // replace variable name with value
           var arg_l = this.jsjson2lambda(json_in.arguments[0], vardict1)
           var arg_d = this.jsjson2dict_nodes(json_in.arguments[0], vardict1)
-          
+
           // Even though this is the only place for variable replacement,
           // I'm commenting it out since it doesn't seem to fit
           //if (vardict1 != undefined) {
@@ -268,7 +270,7 @@ function LambdaReader() {
           //    argv = vardict1[json_in.arguments[0].name]
           //  }
           //}
-    
+
           var nodeId = this.newNodeId("A")
 
           return o00.concat(arg_d).concat([{
@@ -279,17 +281,17 @@ function LambdaReader() {
             "l": o1b,
             "from": json_in.type
           }])
-    
+
         case "ExpressionStatement":
           return this.jsjson2dict_nodes(json_in.expression, vardict1)
-    
+
         case "VariableDeclaration":
           //throw "Should not get " + json_in.type + " because theyre filtered in FunctionExpression"
           //console.log("var ...")
           //console.log(json_in)
           //return [json_in.declarations[0].id.name]
           //return []
-    
+
           var o1 = this.jsjson2dict_nodes(json_in.declarations[0].init, vardict1)
           //console.log("variable dec", json_in, o1)
           /*
@@ -301,18 +303,15 @@ function LambdaReader() {
           return o1.concat(o2)
           */
           return o1
-    
+
         default:
           console.log(json_in)
           throw "Unsupported type1: " + json_in.type
       }
     }
-    
+
     //-----------------------------------
-    function nodeDict2label(nd) {
-      return nd.id + ':' + nd.portname + nd.inout
-    }
-    
+
     this.jsjson2dict_edges = function(json_out) {
       // first gather data in an associative array of structure
       // key = from node
@@ -321,15 +320,15 @@ function LambdaReader() {
       var self = this
       json_out.forEach(row => {
       	['l', 'm', 'r'].forEach(k1 => {
-      	  
+
     			var k2 = row[k1]
           if (!(k2 in gather)) gather[k2] = {'from': null, 'to': []}
-    
+
     			// build node string labels
-          var inout = type_side_to_inout(row.type, k1)
+          var inout = utils.type_side_to_inout(row.type, k1)
           var nodeDict = {'type': row.type, 'id': row.id, 'portname': k1, 'inout': inout}
-          var nodeLabel = nodeDict2label(nodeDict)
-          
+          var nodeLabel = utils.nodeDict2label(nodeDict)
+
           // decide to place the node in "from" or "to"
           switch(inout) {
           	case "o": {
@@ -337,71 +336,71 @@ function LambdaReader() {
                   gather[k2].from = nodeDict
                   return
                 }
-    
+
                 if(gather[k2].from != nodeLabel) {
                   console.error("details for duplicate variable names error", gather)
-                  throw "Node label already set for " + k2 + " to be " + gather[k2].from + " and not " + nodeLabel + `. 
+                  throw "Node label already set for " + k2 + " to be " + gather[k2].from + " and not " + nodeLabel + `.
                          Details in console.
                          Check if you have duplicate variable names and consider appending integer suffixes,
                          e.g. 'f' to 'f1' and 'f2'`
                 }
               }
               break
-              
+
             case "i": {
                 gather[k2].to = gather[k2].to.concat([nodeDict])
                 return
               }
               break
           }
-    
+
           throw "Unsupported inout " + inout
-    
+
         })
       })
-    
+
       // dicts below match with input to nodeDict2label
       var node_frout = {"type": "FROUT", "id": "FROUT", "portname": "m", "inout": "i"}
       var node_t = {"type": "T", "id": "T", "portname": "m", "inout": "i"}
       var node_frin = {"type": "FRIN", "id": "FRIN", "portname": "m", "inout": "o"}
-      
+
       return Object.keys(gather).map(function(key) {
     		if (gather[key].to.length == 0) {
     		  if(gather[key].from.type=='L' && gather[key].from.portname=='l') {
-    		    var node_i = clone(node_t)
+    		    var node_i = utils.clone(node_t)
     		    node_i.id = self.newNodeId("T")
     		    return {'from': gather[key].from, 'to': node_i}
     		  } else {
-    		    var node_i = clone(node_frout)
+    		    var node_i = utils.clone(node_frout)
     		    node_i.id = self.newNodeId("FROUT")
         		return {'from': gather[key].from, 'to': node_i}
     		  }
         }
-    
+
         return gather[key].to.map(toNodeLabel => {
           	if(gather[key].from == null) {
-      		    var node_i = clone(node_frin)
+      		    var node_i = utils.clone(node_frin)
       		    node_i.id = self.newNodeId("FRIN")
             	return {'from': node_i, 'to': toNodeLabel}
             }
-        
+
         		return {'from': gather[key].from, 'to': toNodeLabel}
         })
-    
+
       }).reduce((a,b)=>a.concat(b), [])
     }
-    
-    
+
+
     this.jsjson2dict_main = function(json_in) {
       var dict_nodes = this.jsjson2dict_nodes(json_in);
       var dict_edges = this.jsjson2dict_edges(dict_nodes);
       return {"nodes": dict_nodes, "edges": dict_edges}
     }
-    
-    
-    
+
+
+
     //------------------------------------------------------------
-    
+
     // utility function to convert dict to dot file row, nodes section
     function dict2dot_nodes(row, extendedLabels) {
       switch (row.type) {
@@ -427,35 +426,16 @@ function LambdaReader() {
           throw "Unsupported row type " + row.type
       }
     }
-    
-    // utility function to identify in/out type
-    function type_side_to_inout(type, side) {
-    	switch(type) {
-      	case "L":
-        	switch(side) {
-          	case "l": return 'o'
-            case "m": return 'i'
-            case "r": return 'o'
-          }
-      	case "A":
-        	switch(side) {
-          	case "l": return 'i'
-            case "m": return 'o'
-            case "r": return 'i'
-          }
-      }
-      throw "type/side pair not supoprted yet " + type + "/" + side
-    }
-    
+
     // utility function to convert dict to dot file row, edges section
     this.edgeDict2dot = function(edgeDict) {
-        nodeLabelFrom = nodeDict2label(edgeDict.from)
-        nodeLabelTo   = nodeDict2label(edgeDict.to)
+        var nodeLabelFrom = utils.nodeDict2label(edgeDict.from)
+        var nodeLabelTo   = utils.nodeDict2label(edgeDict.to)
     		return nodeLabelFrom + ' -> ' + nodeLabelTo
     }
-    
-    
-    
+
+
+
     // convert dict to dot
     this.dict2dot_main = function(o_dict, extendedLabels) {
 
@@ -466,26 +446,26 @@ function LambdaReader() {
       `
       var dot_header_l = `
         // defaults for L
-        node [shape=record, color=red, style=filled]; 
+        node [shape=record, color=red, style=filled];
       `
       var dot_header_a = `
         // defaults for A
-        node [shape=record, color=green, style=filled]; 
+        node [shape=record, color=green, style=filled];
       `
       var dot_header_other = `
         // other nodes, e.g. T, FROUT, FRIN
-        node [shape=record, color=blue, style=filled]; 
+        node [shape=record, color=blue, style=filled];
         //T [ shape=point, color=black, style=filled ]
         //FRIN [ style=filled, color=blue ]
         //FROUT [ style=filled, color=blue ]
         `
-        
+
       // reduce list to dot file
       //console.log("program", o)
       var o_nodes_L = o_dict.nodes.filter(b => (b.type == "L")).map(b => dict2dot_nodes(b, extendedLabels)).reduce((a, b) => a + "\n" + b, "")
       var o_nodes_A = o_dict.nodes.filter(b => (b.type == "A")).map(b => dict2dot_nodes(b, extendedLabels)).reduce((a, b) => a + "\n" + b, "")
       var o_edges_s = o_dict.edges.map(this.edgeDict2dot).reduce((a, b) => a + "\n" + b, "")
-    
+
       return (
         dot_header_all +
         dot_header_l +
@@ -496,7 +476,7 @@ function LambdaReader() {
         o_edges_s + '\n}'
       )
     }
-    
+
     return this
 
 }

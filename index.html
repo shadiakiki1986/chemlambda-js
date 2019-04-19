@@ -5,18 +5,18 @@
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
     <title>chemlambda-js</title>
-    
+
     <!-- getbootstrap.com Latest compiled and minified CSS -->
     <!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous"> -->
-    
-    <!-- including integrity 
+
+    <!-- including integrity
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
     -->
-    
+
     <!-- not compatible with 4.3.1, but with 3.3.7 -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" crossorigin="anonymous">
-  
-   <!-- including integrity 
+
+   <!-- including integrity
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
@@ -31,15 +31,15 @@
     <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/esprima/2.7.3/esprima.min.js"></script> -->
     <script src="https://unpkg.com/esprima@~4.0/dist/esprima.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/viz.js/2.1.2/viz.js"></script>
-    
+
     <!-- development version, includes helpful console warnings -->
     <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
-    
+
     <!-- <script src="https://cdn.jsdelivr.net/gh/ariutta/svg-pan-zoom@3.6.0/dist/svg-pan-zoom.min.js"></script> -->
-    
+
     <!-- production version, optimized for size and speed -->
     <!-- <script src="https://cdn.jsdelivr.net/npm/vue"></script> -->
-    
+
     <!-- downloaded from https://github.com/mdaines/viz.js/releases/download/v2.1.2/lite.render.js -->
     <script src="vendor/lite.render.js"></script>
 
@@ -49,40 +49,41 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.11/lodash.min.js"></script>
 
     <style>
+    /* https://jsfiddle.net/shadiakiki1986/b916cofL/ */
       svg {
         overflow: hidden;
       }
-      
+
       .node rect {
         stroke: #333;
         stroke-width: 1.5px;
         fill: #fff;
       }
-      
+
       .edgeLabel rect {
         fill: #fff;
       }
-      
+
       .edgePath {
         stroke: #333;
         stroke-width: 1.5px;
         fill: none;
       }
-      
+
       /* from https://cdn.rawgit.com/gmamaladze/d3-dot-graph/cf08847e/example/index.html */
-      
+
       .links path {
         fill: none;
         stroke: #666;
         stroke-width: 1.5px;
       }
-      
+
       .nodes circle {
         fill: #ccc;
         stroke: #fff;
         stroke-width: 1.5px;
       }
-      
+
       .nodes text {
         fill: #000;
         font: 10px sans-serif;
@@ -90,12 +91,12 @@
       }
     </style>
 
-  </head>  
+  </head>
   <body>
-  
-         
 
-  
+
+
+
     <div id="app" class="container-fluid">
 
       <nav class="navbar navbar-expand-lg navbar-light bg-light">
@@ -103,14 +104,14 @@
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
           <span class="navbar-toggler-icon"></span>
         </button>
-      
+
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
           <ul class="navbar-nav mr-auto">
             <!--<li class="nav-item">
             </li>-->
           </ul>
           <form class="form-inline my-2 my-lg-0">
-            
+
             <div class="form-group">
               <!--
                 Use type=button to prevent bubbling of the event to the form submission
@@ -151,12 +152,12 @@
         </div>
       </nav>
 
- 
+
       <h3>
         Lambda calculus plotter
       </h3>
-      
-      <!-- no longer needed as inline table 
+
+      <!-- no longer needed as inline table
       <span>
         The syntax is a javascript function. Paste it in the box further below and click on "Plot".
         Examples:
@@ -207,25 +208,25 @@
           <td>
             <pre>
       PRED3 => {
-      
+
         var PRED = n => f1 => x1 => {
           var L4 = u1 => x1
           var L5 = u2 => u2
           var L6 = g => h => h(g(f1))
           return ((n(L6))(L4))(L5)
         }
-      
+
         var three = f2 => x2 => f2(f2(f2(x2)))
-      
+
         return PRED(three)
       }
             </pre>
           </td>
         </tr>
-      
+
       </table>
       -->
-      
+
 
       <!-- Modal -->
       <div class="modal fade" id="dot1Modal"  role="dialog" aria-labelledby="dot1 Modal" aria-hidden="true">
@@ -239,33 +240,7 @@
             </div>
             <div class="modal-body">
               <pre>{{dot1Auto}}</pre>
-              
-              <span>
-                Copy-paste to <a href="http://viz-js.com/">viz.js</a>
-                for experimentation
-              </span>
-              
-            </div>
-            <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-            </div>
-          </div>
-        </div>
-      </div>
-        
-      <!-- Modal -->
-      <div class="modal fade" id="dot2Modal"  role="dialog" aria-labelledby="dot2 Modal" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-          <div class="modal-content">
-            <div class="modal-header">
-              <h5 class="modal-title" id="exampleModalCenterTitle">Graph dot script after re-writes</h5>
-              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-              </button>
-            </div>
-            <div class="modal-body">
-              <pre>{{dot2Auto}}</pre>
-              
+
               <span>
                 Copy-paste to <a href="http://viz-js.com/">viz.js</a>
                 for experimentation
@@ -278,7 +253,33 @@
           </div>
         </div>
       </div>
-        
+
+      <!-- Modal -->
+      <div class="modal fade" id="dot2Modal"  role="dialog" aria-labelledby="dot2 Modal" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="exampleModalCenterTitle">Graph dot script after re-writes</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              <pre>{{dot2Auto}}</pre>
+
+              <span>
+                Copy-paste to <a href="http://viz-js.com/">viz.js</a>
+                for experimentation
+              </span>
+
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Modal -->
       <div class="modal fade" id="rwSyntaxModal"  role="dialog" aria-labelledby="rw Syntax Modal" aria-hidden="true">
         <div class="modal-dialog" role="document">
@@ -291,19 +292,19 @@
             </div>
             <div class="modal-body">
               Syntax for re-writes
-              
+
               <pre>
                 beta node1 node2
                 beta node1 node2 # comments after a hash character
                 dist (all|node_in) node_center (all|node_l) (all|node_r)
                 # dist node4 # comment out a line
                 ...
-                
+
                 For beta:
                 - node1 should be of type "L", and node2 of type "A"
                 - node1 and node2 should be directly connected
-                
-                For dist: 
+
+                For dist:
                 - in the below, `node_center` denotes the 2nd argument in the example above (the same follows for other exemplified nodes)
                 - `node_l` denotes nodes connected to the "left output" of `node_center`
                 - `node_r` denotes nodes connected to the "right output" of `node_center`
@@ -314,7 +315,7 @@
                 - if only one of `node_center`'s possibly-multiple inputs is desired to have the `dist` applied, include its ID before `node_center`
                 - the same applies to `node_center`'s possibly-multiple branches on one of its outputs
               </pre>
-              
+
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
@@ -322,12 +323,12 @@
           </div>
         </div>
       </div>
-        
+
       <div class="row">
         <!-- column 1 for user input -->
         <div class="col-3">
           <form>
-            
+
             <div class="form-group">
               <button type="button" class="form-control btn btn-outline-primary btn-block" @click="pushRw()">
                 Run
@@ -348,10 +349,10 @@
               <input class="form-check-input" type="checkbox" v-model="extendedLabels" id="exampleCheck1" />
               <label class="form-check-label" for="exampleCheck1">Extended labels</label>
             </div>
-              
+
             <div class="form-group">
               <label for="exampleFormControlSelect2">Visualization by</label>
-              
+
               <select class="form-control form-control-sm" id="exampleFormControlSelect2" v-model="graphManager">
                 <option value="vizjs" selected>vizjs</option>
                 <option value="d3js">d3js</option>
@@ -360,7 +361,7 @@
 
             <div class="form-group">
               <label for="exampleFormControlSelect1">Graph from</label>
-              
+
               <select class="form-control form-control-sm" id="exampleFormControlSelect1" v-model="dot1From">
                 <option value="lambda" selected>Lambda terms</option>
                 <option value="custom">Custom graph</option>
@@ -371,17 +372,17 @@
               <label for="exampleFormControlTextarea2">Lambda terms (javascript)</label>
               <textarea class="form-control" id="exampleFormControlTextarea2" rows="3" v-model="inJavascript"></textarea>
             </div>
-  
-  
+
+
             <div class="form-group" v-if="dot1From == 'custom'">
               <label for="exampleFormControlTextarea3">Custom graph (dot script)</label>
-              
+
               <div v-if="error1Msg" class="alert alert-danger">
                 Error in graph before re-writes:
                 <br/>
                 {{error1Msg}}
               </div>
-              
+
               <textarea class="form-control" id="exampleFormControlTextarea3" rows="3" v-model="dot1Manual"></textarea>
 
               <span>
@@ -389,8 +390,8 @@
                 and perform graph re-writes there
               </span>
             </div>
-    
-            
+
+
             <div class="form-group">
 
               <label for="exampleFormControlTextarea4">
@@ -407,26 +408,26 @@
                 <br/>
                 {{error2Msg}}
               </div>
-  
+
               <textarea class="form-control" id="exampleFormControlTextarea4" rows="3" v-model="rwTxt"></textarea>
-              
+
               Suggested re-write history
-              
+
               <ol>
                 <li v-if="suggestedRwHistory.length == 0">None</li>
                 <li v-for="rwi in suggestedRwHistory">{{rwi}}</li>
               </ol>
             </div>
-  
+
           </form>
-          
+
         </div>
-   
-  
-        
+
+
+
         <!-- column 2 for graph before/after re-writes -->
         <div class="col-8">
-          
+
           <div>
             <form>
               Suggested re-writes:
@@ -436,44 +437,44 @@
                   <option v-for="item in suggestedRwAll" v-bind:value="item">{{item}}</option>
                 </select>
               </span>, &nbsp;
-                
+
               Choose
               <select v-model="suggestedRwMethod" :disabled="suggestedRwAll.length==0 || suggestedRwInProgress">
                 <option value="selected">Selected</option>
                 <option value="random">Random</option>
               </select>
-              
+
               <button type="button" @click="suggestedRwAppend(false)" class="btn btn-sm btn-info" :disabled="(!suggestedRwSelected && suggestedRwMethod=='selected') || suggestedRwAll.length==0 || suggestedRwInProgress">
                 Step once
               </button>
-              
+
               &nbsp;
-              
+
               <button type="button" @click="suggestedRwAppend(true)" class="btn btn-sm btn-info" :disabled="suggestedRwMethod!='random' || suggestedRwAll.length==0 || suggestedRwInProgress">
                 Roll out {{suggestedRwMax}}
               </button>
-              
+
               &nbsp;
-              
+
               Step {{suggestedRwStep}}
-              
+
               <div v-if="suggestedRwInProgress" class="alert alert-warning">
                 Roll out in progress...
               </div>
-              
+
             </form>
           </div>
 
 
           <div v-if="!error1Msg && (graph1Visible || rwAuto.length==0) && !!dot1Auto">
-            Graph 
-            
+            Graph
+
             <button @click="graph1Visible = !graph1Visible" class="btn btn-sm btn-info" :disabled="rwAuto.length==0 || !dot2Auto">
               before
             </button>
-    
+
             re-writes
-            
+
             <small>
               &nbsp;
               &nbsp;
@@ -483,11 +484,13 @@
                 Export
               </button>
             </small>
-            
-            <div v-html="graph1Svg.outerHTML">
+
+            <div v-html="graph1Svg.outerHTML" v-if="graphManager=='vizjs'">
             </div>
+
+            <div id="graph1Cont" v-if="graphManager=='d3js'"></div>
           </div>
-          
+
           <div v-if="rwAuto.length > 0 && !!dot2Auto && !graph1Visible">
             Graph
             <button @click="graph1Visible = !graph1Visible" class="btn btn-sm btn-info" :disabled="rwAuto.length==0 || !dot2Auto">
@@ -505,13 +508,15 @@
               </button>
             </small>
 
-            <div v-html="graph2Svg.outerHTML" v-if="!error2Msg">
+            <div v-html="graph2Svg.outerHTML" v-if="!error2Msg && graphManager=='vizjs'">
             </div>
+
+            <div id="graph2Cont" v-if="graphManager=='d3js'"></div>
           </div>
-          
+
         </div>
-      </div>    
-        
+      </div>
+
 
       <footer class="footer mt-auto py-3">
         <div class="container">
@@ -522,7 +527,8 @@
       </footer>
 
     </div> <!-- end main container of page -->
-  
+
+    <script src="Utils.js"></script>
     <script src="LambdaTerms.js"></script>
     <script src="LambdaReader.js"></script>
     <script src="GraphRewriter.js"></script>

@@ -3,16 +3,96 @@
 
 function GraphVisualizerD3js() {
 
-  this.renderSVGElement = function(graph) {
+  var utils = new Utils()
+
+  this.dict2d3 = function(g1) {
     // make preliminary conversion of format
-    graph.links = graph.edges
-    console.log("graph viz d3js received graph", graph.nodes, graph.links)
+    console.log("conversion in", utils.clone(g1))
+
+    // utility map
+    type_size_map = {'A': 6, 'L': 6, 'l': 3, 'm': 1, 'r': 1}
+    type_colour_map = {'A': '#04B431', 'L': '#FF0000', 'l': '#FFFF00', 'm': '#FFFF00', 'r': '#FFFF00'}
+
+    // init
+    var graph = {'nodes': [], 'links': []}
+    n_dict = []
+    l_core = []
+    g1.nodes.forEach(n_main => {
+
+      // split the main node into 4 nodes: core, l, r, m
+
+      // gather all nodes in dict by ID
+      // append core node .. note that this gets appended multiple times .. FIXME
+      var n_id2 = n_main.id+':core'
+      var n_core = {id: n_id2,
+                    type: n_main.type,
+                    size: type_size_map[n_main.type],
+                    colour: type_colour_map[n_main.type]
+                   }
+      n_dict[n_id2] =n_core
+
+      var l_types = ['l','m','r']
+      l_types.forEach(k1 => {
+        // append nodes for each of the ports
+        var n_inout = utils.type_side_to_inout(n_main.type, k1)
+        var n_id1 = n_main.id + ':' + k1 + n_inout
+        var n_port = {id: n_id1,
+                      type: k1,
+                      size: type_size_map[k1],
+                      colour: n_inout=="i" ? '#FFFF00' : '#0000FF' // yellow = FFFF00, blue = 0000FF
+                     }
+        n_dict[n_id1] = n_port
+
+        // append links intra-ports, i.e. from core to ports
+        l_core = l_core.concat([{
+          source: n_inout=="i" ? n_port : n_core,
+          target: n_inout=="i" ? n_core : n_port,
+          bond: 3
+        }])
+
+      })
+
+    })
+
+    // copy nodes to "graph"
+    graph.nodes = Object.keys(n_dict).map(k => n_dict[k])
+
+    // build links inter-ports, i.e. between ports of different cores
+    l_ports = g1.edges.map(e => {
+      target_id = utils.nodeDict2label(e.to)
+      source_id = utils.nodeDict2label(e.from)
+      return {
+        source: source_id in n_dict ? n_dict[source_id] : null,
+        target: target_id in n_dict ? n_dict[target_id] : null,
+        bond: 1
+      }
+    }).filter(n => !!n.target && !!n.source)
+
+    // combine links of inter-port and intra-port
+    graph.links = l_core.concat(l_ports)
+
+    console.log("conversion out", utils.clone(graph))
+
+    return graph
+  }
+
+
+  this.renderSVGElement = function(g1) {
+    // inspired from http://imar.ro/~mbuliga/molecule_with_tricks.js
+
+    var graph = this.dict2d3(utils.clone(g1))
+
+    //console.log("graph viz d3js received graph", graph.nodes, graph.links)
 
     // from https://cdn.rawgit.com/gmamaladze/d3-dot-graph/cf08847e/example/index.html
     var line = d3.line()
       .curve(d3.curveCatmullRom.alpha(0.5));
 
     var svgNew = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svgNew.setAttribute("width",  "600") //960)
+    svgNew.setAttribute("height", "600") // 600)
+    //svgNew.setAttribute("viewBox", "0.00 0.00 148.44 204.60")
+
     var svg = d3.select(svgNew),
       width = +svg.attr("width"),
       height = +svg.attr("height");
@@ -20,12 +100,17 @@ function GraphVisualizerD3js() {
     var color = d3.scaleOrdinal(d3.schemeCategory20);
 
     var simulation = d3.forceSimulation()
-      .force("link", d3.forceLink().distance(100).id(function(d) {
-        return d.id;
-      }))
-      .force("charge", d3.forceManyBody().strength(-10))
-      .force("collide", d3.forceCollide(50))
-      .force("center", d3.forceCenter(width / 2, height / 2));
+      .force(
+          "link",
+          d3.forceLink()
+          //.distance(100)
+          .distance(function(d) { return ((radius(d.source.size) + radius(d.target.size) + 10)/(3*d.bond)); })
+          .id(function(d) { return d.id; })
+        )
+      .force("charge", d3.forceManyBody().strength(-200)) // was -10
+      //.force("collide", d3.forceCollide(50))
+      .force("center", d3.forceCenter(width / 2, height / 2))
+      ;
 
     function dragstarted(d) {
       if (!d3.event.active) simulation.alphaTarget(0.3).restart();
@@ -43,6 +128,25 @@ function GraphVisualizerD3js() {
       d.fx = null;
       d.fy = null;
     }
+
+
+      function ticked() {
+        path.attr("d", function(d) {
+          var dx = d.target.x - d.source.x,
+            dy = d.target.y - d.source.y,
+            dr = Math.sqrt(dx * dx + dy * dy);
+          return "M" +
+            d.source.x + "," +
+            d.source.y + "A" +
+            dr + "," + dr + " 0 0,1 " +
+            d.target.x + "," +
+            d.target.y;
+        });
+        node
+          .attr("transform", function(d) {
+            return "translate(" + d.x + "," + d.y + ")";
+          });
+      }
 
       // build the arrow.
       svg.append("svg:defs").selectAll("marker")
@@ -72,9 +176,16 @@ function GraphVisualizerD3js() {
         .data(graph.nodes)
         .enter().append("g")
 
+      var radius = d3.scaleSqrt()
+          .range([0, 6]);
+
       node
         .append("circle")
-        .attr("r", 5)
+
+        //.attr("r", 5)
+        .attr("r", function(d) { return radius(d.size); })
+        .style("fill", function(d) { return d.colour; })
+
         //.attr("fill", function(d) { return color(d.group); })
         .call(d3.drag()
           .on("start", dragstarted)
@@ -96,6 +207,8 @@ function GraphVisualizerD3js() {
       simulation.force("link")
         .links(graph.links);
 
+
+/*
       let linkGen = d3.linkVertical().x(function(d) {
           return d.x;
         })
@@ -110,25 +223,9 @@ function GraphVisualizerD3js() {
         .radius(function(d) {
           return d.y;
         });
+*/
 
-      function ticked() {
-        path.attr("d", function(d) {
-          var dx = d.target.x - d.source.x,
-            dy = d.target.y - d.source.y,
-            dr = Math.sqrt(dx * dx + dy * dy);
-          return "M" +
-            d.source.x + "," +
-            d.source.y + "A" +
-            dr + "," + dr + " 0 0,1 " +
-            d.target.x + "," +
-            d.target.y;
-        });
-        node
-          .attr("transform", function(d) {
-            return "translate(" + d.x + "," + d.y + ")";
-          });
-      }
-
+    console.log("d3js done", svgNew) // svg
     return svgNew
 
   }
