@@ -12,6 +12,10 @@ Version 0.0.7 (2019-04-18)
 * enhancement: "all" no longer used in suggestd re-writes
 * enhancement: moved code block into try/catch
 * enhancement: split out code into GraphRewriter
+* enhancement: moved txt2array to GraphRewriter
+* enhancement: introduce `dict2tmp` to enable fast rewrite without graphing
+* enhancement: rewrite rollouts are now much more efficient
+* enhancement: suggestedRwAll dependent on dict2tmp to facilitate fast iterations in graph rewrites and getting new suggestions
 
 
 Version 0.0.6 (2019-04-17)

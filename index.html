@@ -371,6 +371,13 @@
               </div>
   
               <textarea class="form-control" id="exampleFormControlTextarea4" rows="3" v-model="rwTxt"></textarea>
+              
+              Suggested re-write history
+              
+              <ol>
+                <li v-if="suggestedRwHistory.length == 0">None</li>
+                <li v-for="rwi in suggestedRwHistory">{{rwi}}</li>
+              </ol>
             </div>
   
           </form>

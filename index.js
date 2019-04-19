@@ -93,6 +93,7 @@ var app = new Vue({
 
     "jsAuto": "",
     "dict1Auto": "",
+    "dict2tmp": "", // graph data on which dict2Auto is based, but without plotting
     "dict2Auto": "",
     "rwAuto": [],
 
@@ -110,8 +111,9 @@ var app = new Vue({
     
     "suggestedRwMax": 25, // maximum steps to roll out each time
     "suggestedRwMethod": "",
-    "suggestedRwInProgress": false
+    "suggestedRwInProgress": false,
     //"dict2FromDict1Callback": false
+    "suggestedRwHistory": []
   },
   
   methods: {
@@ -131,9 +133,11 @@ var app = new Vue({
       this.graph1Visible = true
       this.graph2Visible = false
       this.rwAuto = clone([])
+      this.dict2tmp = ""
       this.dict2Auto = "" // clone(this.dict1Auto) // without any re-writes
       lr.globalIdRegister = [] // to re-issue IDs
       this.suggestedRwStep = 0
+      this.suggestedRwHistory = []
     },
     
     jsExOnChange: function() {
@@ -182,7 +186,8 @@ var app = new Vue({
       
       this.rwAuto = clone(this.rwVal)
       // final step
-      this.dict2Auto = clone(this.dict2FromDict1Auto); // with re-writes
+      this.dict2tmp = clone(this.dict2FromDict1Auto); // with re-writes
+      this.dict2Auto = clone(this.dict2tmp) // here we can copy right away and plot
       this.graph1Visible = false
       this.graph2Visible = true
     },
@@ -198,23 +203,26 @@ var app = new Vue({
       this.suggestedRwInProgress = true
       
       // check method
+      var rwCurTxt = ""
       switch(this.suggestedRwMethod) {
         case "selected":
           // just append to the re-writes the selected value
-          this.rwTxt += '\n' + this.suggestedRwSelected
+          rwCurTxt = this.suggestedRwSelected
           break
         case "random":
           // choose a random entry from the suggestions
           var idx = randomIntFromInterval(0, this.suggestedRwAll.length-1)
           // append it
-          this.rwTxt += '\n' + this.suggestedRwAll[idx]
+          rwCurTxt = this.suggestedRwAll[idx]
           break
         default:
           throw "Unsupported suggestion method " + this.suggestedRwMethod
       }
       
-      // now that we have a new entry in the re-writes, re-generate the graph
+      
       /*
+      method 0: ... wtf ...
+      // now that we have a new entry in the re-writes, re-generate the graph
       var self = this
       this.dict2FromDict1Callback = function() {
         console.log("inside callback")
@@ -236,10 +244,25 @@ var app = new Vue({
       this.rwAuto = clone(this.rwVal)
       */
       
-      // complete re-calculation of initial graph + re-writes and graphing
-      var tmp_step = this.suggestedRwStep
-      this.pushRw()
-      this.suggestedRwStep = tmp_step
+      // method 1: complete re-calculation of initial graph + re-writes and graphing
+      //this.rwTxt += '\n' + rwCurTxt
+      //var tmp_step = this.suggestedRwStep
+      //this.pushRw()
+      //this.suggestedRwStep = tmp_step
+      
+      // method 2: calculate new graph based on current graph and re-writes
+      this.suggestedRwHistory = this.suggestedRwHistory.concat([rwCurTxt])
+      try {
+        //console.log("roll out single step ", rwCurTxt)
+        var rwCurVal = gr.txt2array(rwCurTxt)
+        var lambda_dict = gr.apply_rewrites(clone(this.dict2tmp), rwCurVal) // notice that this inputs dict2tmp and below updates it too
+        this.dict2tmp = clone(lambda_dict)
+      } catch (e) {
+        // statements to handle any exceptions
+        console.error(e);
+        this.error2Msg = e;
+        return
+      }
       
       if(till_none && this.suggestedRwAll.length > 0 && (this.suggestedRwStep % this.suggestedRwMax) != 0) {
         // recurse, after the previous plotting
@@ -247,7 +270,7 @@ var app = new Vue({
       }
       
       this.suggestedRwInProgress = false
-      
+      this.dict2Auto = clone(this.dict2tmp) // copy to graph
 
     }
     
@@ -298,84 +321,41 @@ var app = new Vue({
     
     "dict2FromDict1Auto": function() {
       // compute new graph from re-writes (rwAuto)
-
-      var lambda_dict = clone(this.dict1Auto)
-      
       try {
-        lambda_dict = gr.apply_rewrites(lambda_dict, this.rwAuto)
+        return gr.apply_rewrites(clone(this.dict1Auto), this.rwAuto)
       } catch (e) {
         // statements to handle any exceptions
         console.error(e);
         this.error2Msg = e;
         return
       }
-      
-      // return
-      //if(this.dict2FromDict1Callback) setTimeout(this.dict2FromDict1Callback, 1)
-      return lambda_dict
     },
+    
     
     "rwVal": function() {
-      return this.rwTxt.split("\n").map(l => l.trim()).filter(l => !!l).map(l => {
-        // cut off everything after a # (as comment character)
-        // https://stackoverflow.com/a/4059018/4126114
-        if(l.indexOf("#") != -1) {
-          l = l.substr(0, l.indexOf("#"));
-        }
-        
-        // split on space and drop empty words (due to consecutive spaces)
-        var row_all = l.split(" ").filter(w => w.length > 0)
-        if(row_all.length == 0) return null // these are filtered out later
-        
-        // sanity check of length based on type
-        var row_type = row_all[0]
-        switch(row_type) {
-          case "beta":
-            if(row_all.length != 3) throw "beta should have 2 arguments. " + row_all.length + " found"
-            
-            var out = {
-              'type': row_type,
-              'n1': row_all[1],
-              'n2': row_all[2]
-            }
-            return out
-            break
-          case "dist":
-            if(row_all.length != 5) throw "dist should have 4 arguments. " + row_all.length + " found"
-            var out = {
-              'type': row_type,
-              'n_in': row_all[1],
-              'n_center': row_all[2],
-              'n_left': row_all[3],
-              'n_right': row_all[4]
-            }
-            return out
-            break
-          default:
-            throw "Unsupported command " + row_type + " encountered. Only beta and dist supported ATM"
-        }
-        
-      }).filter(l => !!l)
+      return gr.txt2array(this.rwTxt)
     },
     
+    
     "suggestedRwAll": function() {
-      // Note that this is tied to dict2FromDict1Auto and not to dict2Auto
-      // because with suggestions, the graph is not drawn until the end
-      // and that is when dict2Auto is updated
-      if(!this.dict2FromDict1Auto) return []
+      // Note that this is tied to dict2tmp and not dict2FromDict1Auto and not dict2Auto
+      // This allows me to perform single-step rewrites while updating dict2tmp without drawing the graph
+      // in the `suggestedRwApply()` function
+      
+      if(!this.dict2tmp) return []
       
       // filter for edges between L and A, and suggest beta moves on them
       var beta_listStr = []
-      this.dict2FromDict1Auto.edges.forEach(e1 => {
+      this.dict2tmp.edges.forEach(e1 => {
         // if not L-A, ignore
         if(!(e1.from.type=="L" && e1.to.type=="A")) return
         
         // if L has no input, ignore
-        var L_in = this.dict2FromDict1Auto.edges.filter(e2 => e2.to.id == e1.from.id)
+        var L_in = this.dict2tmp.edges.filter(e2 => e2.to.id == e1.from.id)
         if(L_in.length == 0) return
 
         // if A has no output, ignore
-        var A_out = this.dict2FromDict1Auto.edges.filter(e2 => e2.from.id == e1.to.id)
+        var A_out = this.dict2tmp.edges.filter(e2 => e2.from.id == e1.to.id)
         if(A_out.length == 0) return
         
         // append
@@ -384,11 +364,12 @@ var app = new Vue({
       
       // filter for L nodes that have a fan-in or fan-out
       var dist_listStr = []
-      this.dict2FromDict1Auto.nodes.forEach(node_center => {
+      var self = this
+      this.dict2tmp.nodes.forEach(node_center => {
         if(node_center.type != 'L') return
-        var edges_mi = this.dict2FromDict1Auto.edges.filter(edge => edge.to.id == node_center.id)
-        var edges_lo = this.dict2FromDict1Auto.edges.filter(edge => edge.from.id == node_center.id && edge.from.portname=="l")
-        var edges_ro = this.dict2FromDict1Auto.edges.filter(edge => edge.from.id == node_center.id && edge.from.portname=="r")
+        var edges_mi = self.dict2tmp.edges.filter(edge => edge.to.id == node_center.id)
+        var edges_lo = self.dict2tmp.edges.filter(edge => edge.from.id == node_center.id && edge.from.portname=="l")
+        var edges_ro = self.dict2tmp.edges.filter(edge => edge.from.id == node_center.id && edge.from.portname=="r")
         
         if(edges_mi.length <= 1 && edges_lo.length <= 1 && edges_ro.length <= 1) return null
         
@@ -490,7 +471,7 @@ var app = new Vue({
       // cannot move this to a vue.js computed
       // because it returns its value inside a promise
       
-      if(!this.dict2Auto) return ""
+      if(!this.dict2Auto) return
       
       var self = this;
       var lambda_dict = this.dict2Auto

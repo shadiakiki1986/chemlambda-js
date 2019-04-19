@@ -458,8 +458,7 @@ function LambdaReader() {
     
     // convert dict to dot
     this.dict2dot_main = function(o_dict, extendedLabels) {
-      console.log("dict2dot_main", extendedLabels)
-      
+
       // utility variables for convert dict to dot
       var dot_header_all = `
         digraph G {

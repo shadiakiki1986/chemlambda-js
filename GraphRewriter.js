@@ -146,7 +146,7 @@ function GraphRewriter() {
             
             // require at least 1 output to be branching, otherwise what's the point of dist?
             if(Object.keys(is_branch).filter(k => is_branch[k]).filter(x => x).length == 0) {
-              throw "For 'dist', at least one port on the central node is required to be branching. Aborting for " + rwi.toString()
+              throw "For 'dist', at least one port on the central node is required to be branching. Aborting for " + JSON.stringify(rwi)
             }
 
             // filter edges for subset identified by nodes
@@ -261,6 +261,54 @@ function GraphRewriter() {
       // return
       //if(this.dict2FromDict1Callback) setTimeout(this.dict2FromDict1Callback, 1)
       return lambda_dict
+    }
+    
+    
+    this.txt2array = function(rwTxt) {
+      var rwVal = rwTxt.split("\n").map(l => l.trim()).filter(l => !!l)
+      
+      rwVal = rwVal.map(l => {
+        // cut off everything after a # (as comment character)
+        // https://stackoverflow.com/a/4059018/4126114
+        if(l.indexOf("#") != -1) {
+          l = l.substr(0, l.indexOf("#"));
+        }
+        
+        // split on space and drop empty words (due to consecutive spaces)
+        var row_all = l.split(" ").filter(w => w.length > 0)
+        if(row_all.length == 0) return null // these are filtered out later
+        
+        // sanity check of length based on type
+        var row_type = row_all[0]
+        switch(row_type) {
+          case "beta":
+            if(row_all.length != 3) throw "beta should have 2 arguments. " + row_all.length + " found"
+            
+            var out = {
+              'type': row_type,
+              'n1': row_all[1],
+              'n2': row_all[2]
+            }
+            return out
+            break
+          case "dist":
+            if(row_all.length != 5) throw "dist should have 4 arguments. " + row_all.length + " found"
+            var out = {
+              'type': row_type,
+              'n_in': row_all[1],
+              'n_center': row_all[2],
+              'n_left': row_all[3],
+              'n_right': row_all[4]
+            }
+            return out
+            break
+          default:
+            throw "Unsupported command " + row_type + " encountered. Only beta and dist supported ATM"
+        }
+        
+      })
+      rwVal = rwVal.filter(l => !!l)
+      return rwVal
     }
 
     
