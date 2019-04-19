@@ -125,7 +125,8 @@ var app = new Vue({
     
     "suggestedRwMax": 25, // maximum steps to roll out each time
     "suggestedRwMethod": "",
-    "dict2FromDict1Callback": false
+    "suggestedRwInProgress": false
+    //"dict2FromDict1Callback": false
   },
   
   methods: {
@@ -209,6 +210,7 @@ var app = new Vue({
 
       // increment
       this.suggestedRwStep += 1
+      this.suggestedRwInProgress = true
       
       // check method
       switch(this.suggestedRwMethod) {
@@ -258,6 +260,8 @@ var app = new Vue({
         // recurse, after the previous plotting
         this.suggestedRwAppend(till_none)
       }
+      
+      this.suggestedRwInProgress = false
       
 
     }
@@ -364,45 +368,45 @@ var app = new Vue({
                 "A_in_notL": Object.keys(edges_dict).filter(k => (edges_dict[k].to.id==n2.id)&&(edges_dict[k].from.id!=n1.id)),
                 "L_out_notA": Object.keys(edges_dict).filter(k => (edges_dict[k].from.id==n1.id)&&(edges_dict[k].to.id!=n2.id))
               }
-              
+
+              // add edges
+              var el1 = edges_labeled["L_in"].map(L_in => {
+                  return edges_labeled["A_out"].map(A_out => {
+                    return {
+                      'from': edges_dict[L_in].from, 
+                      'to': edges_dict[A_out].to
+                    }
+                  })
+                }).reduce((a,b)=>a.concat(b), [])
+                
+              var el2 = edges_labeled["A_in_notL"].map(A_in_notL => {
+                  return edges_labeled["L_out_notA"].map(L_out_notA => {
+                    return {
+                      'from': edges_dict[A_in_notL].from, 
+                      'to': edges_dict[L_out_notA].to
+                    }
+                  })
+                }).reduce((a,b)=>a.concat(b), [])
+                
+              //console.log("edges labeled", edges_labeled)
+              var el3 = [el1, el2].reduce((a,b)=>a.concat(b), [])
+              el3.forEach(e => {
+                var k = lr.edgeDict2dot(e)
+                edges_dict[k] = e
+              })
+  
+              // delete edges
+              Object.keys(edges_labeled).forEach(k1 => {
+                edges_labeled[k1].map(k2 => {
+                  delete edges_dict[k2]
+                })
+              })
+
             } catch (e) {
               this.error2Msg = e
               console.error(e)
               return
             }
-            
-            // add edges
-            [ 
-              edges_labeled["L_in"].map(L_in => {
-                return edges_labeled["A_out"].map(A_out => {
-                  return {
-                    'from': edges_dict[L_in].from, 
-                    'to': edges_dict[A_out].to
-                  }
-                })
-              }).reduce((a,b)=>a.concat(b), []),
-
-              
-              edges_labeled["A_in_notL"].map(A_in_notL => {
-                return edges_labeled["L_out_notA"].map(L_out_notA => {
-                  return {
-                    'from': edges_dict[A_in_notL].from, 
-                    'to': edges_dict[L_out_notA].to
-                  }
-                })
-              }).reduce((a,b)=>a.concat(b), [])
-              
-            ].reduce((a,b)=>a.concat(b), []).forEach(e => {
-              var k = lr.edgeDict2dot(e)
-              edges_dict[k] = e
-            })
-
-            // delete edges
-            Object.keys(edges_labeled).forEach(k1 => {
-              edges_labeled[k1].map(k2 => {
-                delete edges_dict[k2]
-              })
-            })
 
             break;
             
@@ -475,64 +479,65 @@ var app = new Vue({
               if(n_left !="all") edges_labeled["L_out_l"] = edges_labeled["L_out_l"].filter(k => edges_dict[k].to.id  ==rwi.n_left )
               if(n_right!="all") edges_labeled["L_out_r"] = edges_labeled["L_out_r"].filter(k => edges_dict[k].to.id  ==rwi.n_right)
 
+              // add edges
+              edges_labeled["L_in"].map(L_in => {
+                return edges_labeled["L_out_r"].map(L_out_r => {
+                  return edges_labeled["L_out_l"].map(L_out_l => {
+                    // clone the old L node
+                    var old_L_id = rwi.n_center
+                    var old_L_node = lambda_dict.nodes.filter(n => n.id==old_L_id)
+                    if(old_L_node.length == 0) throw "Failed to identify node " + old_L_id + ". Found 0"
+                    if(old_L_node.length  > 1) throw "Failed to identify node " + old_L_id + ". Found > 1"
+                    old_L_node = old_L_node[0]
+                    
+                    var new_L_id = lr.newNodeId("L")
+                    var new_L_node = clone(old_L_node)
+                    new_L_node.id = new_L_id
+                    new_L_node.from = rwi.toString()
+                    
+                    // add the new L node to the list of nodes
+                    lambda_dict.nodes = lambda_dict.nodes.concat([new_L_node])
+                    
+                    // add the new L node's edges to the list of edges
+                    // Notice that none of the outputs here are branched
+                    var new_L_l = {"type": "L", "id": new_L_id, "portname": "l", "inout": "o"}
+                    var new_L_m = {"type": "L", "id": new_L_id, "portname": "m", "inout": "i"}
+                    var new_L_r = {"type": "L", "id": new_L_id, "portname": "r", "inout": "o"}
+    
+                    return [
+                      { 'from': edges_dict[L_in].from, 
+                        'to': new_L_m
+                      },
+                      { 'from': new_L_l, 
+                        'to': edges_dict[L_out_l].to
+                      },
+                      { 'from': new_L_r, 
+                        'to': edges_dict[L_out_r].to
+                      },
+                    ]
+                  }).reduce((a,b)=>a.concat(b), [])
+                }).reduce((a,b)=>a.concat(b), [])
+              }).reduce((a,b)=>a.concat(b), []).forEach(e => {
+                var k = lr.edgeDict2dot(e)
+                edges_dict[k] = e
+              })
+  
+              // delete edges
+              Object.keys(edges_labeled).forEach(k1 => {
+                // only delete edges that belong to a branching port
+                if(is_branch[k1]) {
+                  edges_labeled[k1].map(k2 => {
+                    delete edges_dict[k2]
+                  })
+                }
+              })
+
             } catch (e) {
               this.error2Msg = e
               console.error(e)
               return
             }
             
-            // add edges
-            edges_labeled["L_in"].map(L_in => {
-              return edges_labeled["L_out_r"].map(L_out_r => {
-                return edges_labeled["L_out_l"].map(L_out_l => {
-                  // clone the old L node
-                  var old_L_id = rwi.n_center
-                  var old_L_node = lambda_dict.nodes.filter(n => n.id==old_L_id)
-                  if(old_L_node.length == 0) throw "Failed to identify node " + old_L_id + ". Found 0"
-                  if(old_L_node.length  > 1) throw "Failed to identify node " + old_L_id + ". Found > 1"
-                  old_L_node = old_L_node[0]
-                  
-                  var new_L_id = lr.newNodeId("L")
-                  var new_L_node = clone(old_L_node)
-                  new_L_node.id = new_L_id
-                  new_L_node.from = rwi.toString()
-                  
-                  // add the new L node to the list of nodes
-                  lambda_dict.nodes = lambda_dict.nodes.concat([new_L_node])
-                  
-                  // add the new L node's edges to the list of edges
-                  // Notice that none of the outputs here are branched
-                  var new_L_l = {"type": "L", "id": new_L_id, "portname": "l", "inout": "o"}
-                  var new_L_m = {"type": "L", "id": new_L_id, "portname": "m", "inout": "i"}
-                  var new_L_r = {"type": "L", "id": new_L_id, "portname": "r", "inout": "o"}
-  
-                  return [
-                    { 'from': edges_dict[L_in].from, 
-                      'to': new_L_m
-                    },
-                    { 'from': new_L_l, 
-                      'to': edges_dict[L_out_l].to
-                    },
-                    { 'from': new_L_r, 
-                      'to': edges_dict[L_out_r].to
-                    },
-                  ]
-                }).reduce((a,b)=>a.concat(b), [])
-              }).reduce((a,b)=>a.concat(b), [])
-            }).reduce((a,b)=>a.concat(b), []).forEach(e => {
-              var k = lr.edgeDict2dot(e)
-              edges_dict[k] = e
-            })
-
-            // delete edges
-            Object.keys(edges_labeled).forEach(k1 => {
-              // only delete edges that belong to a branching port
-              if(is_branch[k1]) {
-                edges_labeled[k1].map(k2 => {
-                  delete edges_dict[k2]
-                })
-              }
-            })
 
             break;
             
@@ -550,7 +555,7 @@ var app = new Vue({
       })
       
       // return
-      if(this.dict2FromDict1Callback) setTimeout(this.dict2FromDict1Callback, 1)
+      //if(this.dict2FromDict1Callback) setTimeout(this.dict2FromDict1Callback, 1)
       return lambda_dict
     },
     
@@ -632,7 +637,7 @@ var app = new Vue({
         if(edges_mi.length <= 1 && edges_lo.length <= 1 && edges_ro.length <= 1) return null
         
         // 3x all
-        dist_listStr = dist_listStr.concat(["dist all " + node_center.id + " all all"])
+        // dist_listStr = dist_listStr.concat(["dist all " + node_center.id + " all all"])
         
         // now, spell out the nodes
         edges_mi.forEach(edge_mi => {
@@ -640,29 +645,29 @@ var app = new Vue({
           if(node_mi.type != 'L' && node_mi.type != 'A') return
           
           // 2x all
-          dist_listStr = dist_listStr.concat(["dist " + node_mi.id + " " + node_center.id + " all all"])
+          // dist_listStr = dist_listStr.concat(["dist " + node_mi.id + " " + node_center.id + " all all"])
           
           edges_lo.forEach(edge_lo => {
             node_lo = edge_lo.to
             if(node_lo.type != 'L' && node_lo.type != 'A') return
             
             // 2x all
-            dist_listStr = dist_listStr.concat(["dist all " + node_center.id + " " + node_lo.id +  " all"])
+            // dist_listStr = dist_listStr.concat(["dist all " + node_center.id + " " + node_lo.id +  " all"])
             // 1x all
-            dist_listStr = dist_listStr.concat(["dist " + node_mi.id + " " + node_center.id + " " + node_lo.id +  " all"])
+            // dist_listStr = dist_listStr.concat(["dist " + node_mi.id + " " + node_center.id + " " + node_lo.id +  " all"])
             
             edges_ro.forEach(edge_ro => {
               node_ro = edge_ro.to
               if(node_ro.type != 'L' && node_ro.type != 'A') return
               
               // 2x all
-              dist_listStr = dist_listStr.concat(["dist all " + node_center.id + " all " + node_ro.id + ""])
+              // dist_listStr = dist_listStr.concat(["dist all " + node_center.id + " all " + node_ro.id + ""])
               
               // 1x all
-              dist_listStr = dist_listStr.concat(["dist " + node_mi.id + " " + node_center.id + " all " + node_ro.id])
+              // dist_listStr = dist_listStr.concat(["dist " + node_mi.id + " " + node_center.id + " all " + node_ro.id])
 
               // 1x all
-              dist_listStr = dist_listStr.concat(["dist all " + node_center.id + " " + node_lo.id +  " " + node_ro.id])
+              // dist_listStr = dist_listStr.concat(["dist all " + node_center.id + " " + node_lo.id +  " " + node_ro.id])
 
               // 0x all
               dist_listStr = dist_listStr.concat(["dist " + node_mi.id + " " + node_center.id + " " + node_lo.id +  " " + node_ro.id])

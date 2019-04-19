@@ -387,30 +387,34 @@
               Suggested re-writes:
               <span v-if="suggestedRwAll.length == 0">None</span>
               <span v-if="suggestedRwAll.length  > 0">
-                <select v-model="suggestedRwSelected">
+                <select v-model="suggestedRwSelected" :disabled="suggestedRwInProgress">
                   <option v-for="item in suggestedRwAll" v-bind:value="item">{{item}}</option>
                 </select>
-              </span>
+              </span>, &nbsp;
                 
               Choose
-              <select v-model="suggestedRwMethod" :disabled="suggestedRwAll.length==0">
+              <select v-model="suggestedRwMethod" :disabled="suggestedRwAll.length==0 || suggestedRwInProgress">
                 <option value="selected">Selected</option>
                 <option value="random">Random</option>
               </select>
               
-              <button type="button" @click="suggestedRwAppend(false)" class="btn btn-sm btn-info" :disabled="(!suggestedRwSelected && suggestedRwMethod=='selected') || suggestedRwAll.length==0">
+              <button type="button" @click="suggestedRwAppend(false)" class="btn btn-sm btn-info" :disabled="(!suggestedRwSelected && suggestedRwMethod=='selected') || suggestedRwAll.length==0 || suggestedRwInProgress">
                 Step once
               </button>
               
               &nbsp;
               
-              <button type="button" @click="suggestedRwAppend(true)" class="btn btn-sm btn-info" :disabled="suggestedRwMethod!='random' || suggestedRwAll.length==0">
+              <button type="button" @click="suggestedRwAppend(true)" class="btn btn-sm btn-info" :disabled="suggestedRwMethod!='random' || suggestedRwAll.length==0 || suggestedRwInProgress">
                 Roll out {{suggestedRwMax}}
               </button>
               
               &nbsp;
               
               Step {{suggestedRwStep}}
+              
+              <div v-if="suggestedRwInProgress" class="alert alert-warning">
+                Roll out in progress...
+              </div>
               
             </form>
           </div>

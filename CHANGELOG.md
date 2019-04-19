@@ -30,6 +30,9 @@ Version 0.0.5 (2019-04-17)
 * feature: suggested re-writes to be based on output dict after re-write but before plotting
     * not sure if this was necessary or just an artifact of trying not to use `pushRw` from within `suggestedRwAppend`
 * feature: first working version of rolled out random re-writes .. still inefficient though
+* enhancement: add "rollout in progress"
+* enhancement: "all" no longer used in suggestd re-writes
+* enhancement: moved code block into try/catch
 
 
 Version 0.0.4 (2019-04-1{5,6,7})
