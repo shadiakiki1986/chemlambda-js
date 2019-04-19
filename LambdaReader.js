@@ -117,7 +117,7 @@ function LambdaReader() {
     this.newNodeId = function(nodetype) {
       var allIds = this.globalIdRegister.filter(x => x.startsWith(nodetype))
       newId = nodetype + '0'
-      MAXNUM = 1000 // circuit breaker
+      MAXNUM = 100 // circuit breaker
       for (var i = 0;
         (i < MAXNUM) && (allIds.indexOf(newId) != -1); i++) {
         newId = '' + nodetype + i;

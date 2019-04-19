@@ -123,7 +123,7 @@ var app = new Vue({
     "suggestedRwSelected": "",
     "suggestedRwStep": 0,
     
-    "suggestedRwMax": 50, // maximum steps to roll out each time
+    "suggestedRwMax": 25, // maximum steps to roll out each time
     "suggestedRwMethod": "",
     "dict2FromDict1Callback": false
   },
@@ -202,9 +202,11 @@ var app = new Vue({
     },
     
     suggestedRwAppend: function(till_none) {
-      // do nothing if there are no suggestions
-      if(this.suggestedRwAll.length == 0) return
-      
+      // sanity check
+      if(till_none && this.suggestedRwMethod!='random') {
+        throw "suggestedRwAppend(till_none=true) only supported when suggestedRwMethod=='random'."
+      }
+
       // increment
       this.suggestedRwStep += 1
       
@@ -225,22 +227,39 @@ var app = new Vue({
       }
       
       // now that we have a new entry in the re-writes, re-generate the graph
+      /*
       var self = this
       this.dict2FromDict1Callback = function() {
         console.log("inside callback")
         // stop the callback since fulfilled
         self.dict2FromDict1Callback = false
         
+        // if done, then plot and return, otherwise recurse
+        // done = loop not requested or no more suggestions or reached a multiple of the max
+        if(!till_none || self.suggestedRwAll.length == 0 || self.suggestedRwStep % self.suggestedRwMax == 0) {
+          // plot with re-writes
+          console.log("plotting with rewrites", self.dict2FromDict1Auto)
+          self.dict2Auto = clone(self.dict2FromDict1Auto);
+          return
+        }
         
-        // loop if requested, and stop if reached a multiple of the max
-        if(!till_none) return
-        if(self.suggestedRwMethod!='random') return
-        if(self.suggestedRwStep % self.suggestedRwMax == 0) return
-        
+        // recurse, without plotting yet
         self.suggestedRwAppend(till_none)
       }
       this.rwAuto = clone(this.rwVal)
-      this.dict2Auto = clone(this.dict2FromDict1Auto); // with re-writes
+      */
+      
+      // complete re-calculation of initial graph + re-writes and graphing
+      var tmp_step = this.suggestedRwStep
+      this.pushRw()
+      this.suggestedRwStep = tmp_step
+      
+      if(till_none && this.suggestedRwAll.length > 0 && (this.suggestedRwStep % this.suggestedRwMax) != 0) {
+        // recurse, after the previous plotting
+        this.suggestedRwAppend(till_none)
+      }
+      
+
     }
     
   },
@@ -303,6 +322,9 @@ var app = new Vue({
       // pass dict through re-writes
       this.rwAuto.forEach(rwi => {
         if(rwi == null) return
+        
+        //console.log("applying re-write ", JSON.stringify(rwi))
+        //console.log("lambda_dict", lambda_dict.nodes.map(x=>x.id))
 
         // convert edges array to associative array
         // Note that these 2 lines need to be inside the forEach
@@ -411,21 +433,24 @@ var app = new Vue({
               if(n_center.length==0) throw ("Rewrite error: Node " + rwi.n_center + " not found")
               if(n_center.length >1) throw ("Rewrite error: Node " + rwi.n_center + " found > 1")
               n_center = n_center[0] // take first element of array
+              // check types
+              if(n_center.type!='L') throw ("Rewrite error: center node for dist is expected to have type L. Got '" + n_center.type + "' instead")
 
               if(n_left!="all") {
                 if(n_left.length==0) throw ("Rewrite error: Node " + rwi.n_left + " not found")
                 if(n_left.length >1) throw ("Rewrite error: Node " + rwi.n_left + " found > 1")
                 n_left = n_left[0] // take first element of array
+                // check types
+                if(n_left.type !='L' && n_left.type !='A') throw ("Rewrite error: left  node for dist is expected to have type L or A. Got '" + n_left.type  + "' instead")
               }
 
               if(n_right!="all") {
                 if(n_right.length==0) throw ("Rewrite error: Node " + rwi.n_right + " not found")
                 if(n_right.length >1) throw ("Rewrite error: Node " + rwi.n_right + " found > 1")
                 n_right = n_right[0] // take first element of array
+                // check types
+                if(n_right.type!='L' && n_right.type!='A') throw ("Rewrite error: right node for dist is expected to have type L or A. Got '" + n_right.type + "' instead")
               }
-
-              // check types
-              if(n_center.type!='L') throw ("Rewrite error: 2nd node for dist is expected to have type L. Got '" + n_center.type + "' instead")
 
               // identify all edges
               var edges_labeled = {
@@ -573,20 +598,23 @@ var app = new Vue({
     },
     
     "suggestedRwAll": function() {
-      if(!this.dict2Auto) return []
+      // Note that this is tied to dict2FromDict1Auto and not to dict2Auto
+      // because with suggestions, the graph is not drawn until the end
+      // and that is when dict2Auto is updated
+      if(!this.dict2FromDict1Auto) return []
       
       // filter for edges between L and A, and suggest beta moves on them
       var beta_listStr = []
-      this.dict2Auto.edges.forEach(e1 => {
+      this.dict2FromDict1Auto.edges.forEach(e1 => {
         // if not L-A, ignore
         if(!(e1.from.type=="L" && e1.to.type=="A")) return
         
         // if L has no input, ignore
-        var L_in = this.dict2Auto.edges.filter(e2 => e2.to.id == e1.from.id)
+        var L_in = this.dict2FromDict1Auto.edges.filter(e2 => e2.to.id == e1.from.id)
         if(L_in.length == 0) return
 
         // if A has no output, ignore
-        var A_out = this.dict2Auto.edges.filter(e2 => e2.from.id == e1.to.id)
+        var A_out = this.dict2FromDict1Auto.edges.filter(e2 => e2.from.id == e1.to.id)
         if(A_out.length == 0) return
         
         // append
@@ -595,11 +623,11 @@ var app = new Vue({
       
       // filter for L nodes that have a fan-in or fan-out
       var dist_listStr = []
-      this.dict2Auto.nodes.forEach(node_center => {
+      this.dict2FromDict1Auto.nodes.forEach(node_center => {
         if(node_center.type != 'L') return
-        var edges_mi = this.dict2Auto.edges.filter(edge => edge.to.id == node_center.id)
-        var edges_lo = this.dict2Auto.edges.filter(edge => edge.from.id == node_center.id && edge.from.portname=="l")
-        var edges_ro = this.dict2Auto.edges.filter(edge => edge.from.id == node_center.id && edge.from.portname=="r")
+        var edges_mi = this.dict2FromDict1Auto.edges.filter(edge => edge.to.id == node_center.id)
+        var edges_lo = this.dict2FromDict1Auto.edges.filter(edge => edge.from.id == node_center.id && edge.from.portname=="l")
+        var edges_ro = this.dict2FromDict1Auto.edges.filter(edge => edge.from.id == node_center.id && edge.from.portname=="r")
         
         if(edges_mi.length <= 1 && edges_lo.length <= 1 && edges_ro.length <= 1) return null
         
@@ -609,11 +637,15 @@ var app = new Vue({
         // now, spell out the nodes
         edges_mi.forEach(edge_mi => {
           node_mi = edge_mi.from
+          if(node_mi.type != 'L' && node_mi.type != 'A') return
+          
           // 2x all
           dist_listStr = dist_listStr.concat(["dist " + node_mi.id + " " + node_center.id + " all all"])
           
           edges_lo.forEach(edge_lo => {
             node_lo = edge_lo.to
+            if(node_lo.type != 'L' && node_lo.type != 'A') return
+            
             // 2x all
             dist_listStr = dist_listStr.concat(["dist all " + node_center.id + " " + node_lo.id +  " all"])
             // 1x all
@@ -621,6 +653,8 @@ var app = new Vue({
             
             edges_ro.forEach(edge_ro => {
               node_ro = edge_ro.to
+              if(node_ro.type != 'L' && node_ro.type != 'A') return
+              
               // 2x all
               dist_listStr = dist_listStr.concat(["dist all " + node_center.id + " all " + node_ro.id + ""])
               

@@ -25,8 +25,11 @@ Version 0.0.5 (2019-04-17)
 * feature: add extended labels checkbox
 * feature: add suggested rewrites
 * feature: allow to step once with selected/random re-write or roll out 50
-    * this is still WIP and hangs
     * the application of the graph with the re-writes is inefficient because for each step it computes it from scratch
+* feature: dist not allowed on T, FROUT, FRIN
+* feature: suggested re-writes to be based on output dict after re-write but before plotting
+    * not sure if this was necessary or just an artifact of trying not to use `pushRw` from within `suggestedRwAppend`
+* feature: first working version of rolled out random re-writes .. still inefficient though
 
 
 Version 0.0.4 (2019-04-1{5,6,7})
