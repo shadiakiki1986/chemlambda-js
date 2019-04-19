@@ -266,8 +266,8 @@
               <pre>
                 beta node1 node2
                 beta node1 node2 # comments after a hash character
-                dist node3
-                # dist node 4 # comment out a line
+                dist (all|node_in) node3 (all|node_l) (all|node_r)
+                # dist node4 # comment out a line
                 ...
                 
                 For beta:
@@ -275,8 +275,15 @@
                 - node1 and node2 should be directly connected
                 
                 For dist: 
+                - in the below, `node3` denotes the 2nd argument in the example above (the same follows for other exemplified nodes)
+                - `node_l` denotes nodes connected to the "left output" of `node3`
+                - `node_r` denotes nodes connected to the "right output" of `node3`
+                - `node_in` denotes nodes connected to the "input" of `node3`
                 - node3 should be of type L
-                - one of node3's outputs should be branching out to two other nodes
+                - at least one of node3's ports should be branching (fan in or fan out)
+                - if all of node3's possibly-multiple inputs is desired to have the `dist` applied, use the keyword "all" before `node3`
+                - if only one of node3's possibly-multiple inputs is desired to have the `dist` applied, include its ID before `node3`
+                - the same applies to node3's possibly-multiple branches on one of its outputs
               </pre>
               
             </div>

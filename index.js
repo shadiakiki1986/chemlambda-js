@@ -56,7 +56,11 @@ beta L8 A2
 
 # either perform beta, or dist
 # beta L7 A3
-dist L3`
+# dist all L3 all all
+# dist L2  L3 all all
+# dist L2  L3 A0  all
+# dist L2  L3 A0  A7
+`
   }
 ]; 
 
@@ -114,23 +118,28 @@ var app = new Vue({
   
   methods: {
     resetInput: function() {
-      this.error1Msg = ""
-      this.error2Msg = ""
       this.inTitle=""
       this.inDescription=""
       this.inJavascript=""
       this.dot1From="lambda"
+      this.rwTxt = ""
+    },
+    
+    resetOutput: function() {
+      this.error1Msg = ""
+      this.error2Msg = ""
       this.jsAuto = ""
       this.dict1Auto = ""
       this.graph1Visible = true
       this.graph2Visible = false
-      this.rwTxt = ""
       this.rwAuto = clone([])
       this.dict2Auto = "" // clone(this.dict1Auto) // without any re-writes
+      lr.globalIdRegister = [] // to re-issue IDs
     },
     
     jsExOnChange: function() {
       this.resetInput()
+      this.resetOutput()
       
       this.inTitle = this.jsExSelected.title
       this.inDescription = this.jsExSelected.description
@@ -163,8 +172,8 @@ var app = new Vue({
     */
     
     pushRw: function() {
-      this.error1Msg = ""
-      this.error2Msg = ""
+      this.resetOutput()
+
       if(this.dot1From=='lambda') {
         this.jsAuto = this.inJavascript;
         this.dict1Auto = clone(this.dict1FromJsAuto)
@@ -322,32 +331,70 @@ var app = new Vue({
             
             
           case "dist":
-            // e.g. dist L1
+            // e.g. dist L1 L2 L3 L4
 
             try {
               // sanity check
-              if(n2 != null) throw("Rewrite error: Move " + rwi.type + " only supports 1 node as input. Two were passed")
+              if(rwi.n_in == null) throw("Rewrite error: Move " + rwi.type + " received node 1 == null. Aborting")
+              if(rwi.n_center == null) throw("Rewrite error: Move " + rwi.type + " received node 2 == null. Aborting")
+              if(rwi.n_left == null) throw("Rewrite error: Move " + rwi.type + " received node 3 == null. Aborting")
+              if(rwi.n_right == null) throw("Rewrite error: Move " + rwi.type + " received node 4 == null. Aborting")
               
               // get node
-              var n1 = lambda_dict.nodes.filter(node => node.id==rwi.n1)
-
+              var n_in = (rwi.n_in=="all") ? "all" : lambda_dict.nodes.filter(node => node.id==rwi.n_in)
+              var n_center = lambda_dict.nodes.filter(node => node.id==rwi.n_center)
+              var n_left = (rwi.n_left=="all") ? "all" : lambda_dict.nodes.filter(node => node.id==rwi.n_left)
+              var n_right = (rwi.n_right=="all") ? "all" : lambda_dict.nodes.filter(node => node.id==rwi.n_right)
+              
               // sanity checks
-              if(n1.length==0) throw ("Rewrite error: Node " + rwi.n1 + " not found")
-              if(n1.length >1) throw ("Rewrite error: Node " + rwi.n1 + " found > 1")
+              if(n_in!="all") {
+                if(n_in.length==0) throw ("Rewrite error: Node " + rwi.n_in + " not found")
+                if(n_in.length >1) throw ("Rewrite error: Node " + rwi.n_in + " found > 1")
+                n_in = n_in[0] // take first element of array
+              }
 
-              // take first element of each array
-              n1 = n1[0]
+              if(n_center.length==0) throw ("Rewrite error: Node " + rwi.n_center + " not found")
+              if(n_center.length >1) throw ("Rewrite error: Node " + rwi.n_center + " found > 1")
+              n_center = n_center[0] // take first element of array
+
+              if(n_left!="all") {
+                if(n_left.length==0) throw ("Rewrite error: Node " + rwi.n_left + " not found")
+                if(n_left.length >1) throw ("Rewrite error: Node " + rwi.n_left + " found > 1")
+                n_left = n_left[0] // take first element of array
+              }
+
+              if(n_right!="all") {
+                if(n_right.length==0) throw ("Rewrite error: Node " + rwi.n_right + " not found")
+                if(n_right.length >1) throw ("Rewrite error: Node " + rwi.n_right + " found > 1")
+                n_right = n_right[0] // take first element of array
+              }
 
               // check types
-              if(n1.type!='L') throw ("Rewrite error: 1st node for beta is expected to have type L. Got '" + n1.type + "' instead")
+              if(n_center.type!='L') throw ("Rewrite error: 2nd node for dist is expected to have type L. Got '" + n_center.type + "' instead")
 
-              // identify edges
+              // identify all edges
               var edges_labeled = {
-                "L_in": Object.keys(edges_dict).filter(k => edges_dict[k].to.id==rwi.n1),
-                "L_out_r": Object.keys(edges_dict).filter(k => (edges_dict[k].from.id==n1.id)&&(edges_dict[k].from.portname=="r")),
-                "L_out_l": Object.keys(edges_dict).filter(k => (edges_dict[k].from.id==n1.id)&&(edges_dict[k].from.portname=="l"))
+                "L_in"   : Object.keys(edges_dict).filter(k =>  edges_dict[k].to.id  ==rwi.n_center),
+                "L_out_r": Object.keys(edges_dict).filter(k => (edges_dict[k].from.id==n_center.id )&&(edges_dict[k].from.portname=="r")),
+                "L_out_l": Object.keys(edges_dict).filter(k => (edges_dict[k].from.id==n_center.id )&&(edges_dict[k].from.portname=="l"))
               }
               
+              // identify branching ports
+              var is_branch = []
+              Object.keys(edges_labeled).forEach(k => {
+                is_branch[k] = (edges_labeled[k].length > 1)
+              })
+              
+              // require at least 1 output to be branching, otherwise what's the point of dist?
+              if(Object.keys(is_branch).filter(k => is_branch[k]).filter(x => x).length == 0) {
+                throw "For 'dist', at least one port on the central node is required to be branching. Aborting for " + rwi.toString()
+              }
+
+              // filter edges for subset identified by nodes
+              if(n_in   !="all") edges_labeled["L_in"   ] = edges_labeled["L_in"   ].filter(k => edges_dict[k].from.id==rwi.n_in   )
+              if(n_left !="all") edges_labeled["L_out_l"] = edges_labeled["L_out_l"].filter(k => edges_dict[k].to.id  ==rwi.n_left )
+              if(n_right!="all") edges_labeled["L_out_r"] = edges_labeled["L_out_r"].filter(k => edges_dict[k].to.id  ==rwi.n_right)
+
             } catch (e) {
               this.error2Msg = e
               console.error(e)
@@ -359,12 +406,16 @@ var app = new Vue({
               return edges_labeled["L_out_r"].map(L_out_r => {
                 return edges_labeled["L_out_l"].map(L_out_l => {
                   // clone the old L node
-                  var old_L_id = rwi.n1
-                  var old_L_node = lambda_dict.nodes.filter(n => n.id==old_L_id)[0]
+                  var old_L_id = rwi.n_center
+                  var old_L_node = lambda_dict.nodes.filter(n => n.id==old_L_id)
+                  if(old_L_node.length == 0) throw "Failed to identify node " + old_L_id + ". Found 0"
+                  if(old_L_node.length  > 1) throw "Failed to identify node " + old_L_id + ". Found > 1"
+                  old_L_node = old_L_node[0]
+                  
                   var new_L_id = lr.newNodeId("L")
                   var new_L_node = clone(old_L_node)
                   new_L_node.id = new_L_id
-                  new_L_node.from = "dist " + rwi.n1
+                  new_L_node.from = rwi.toString()
                   
                   // add the new L node to the list of nodes
                   lambda_dict.nodes = lambda_dict.nodes.concat([new_L_node])
@@ -380,10 +431,10 @@ var app = new Vue({
                       'to': new_L_m
                     },
                     { 'from': new_L_l, 
-                      'to': edges_dict[L_out_r].to
+                      'to': edges_dict[L_out_l].to
                     },
                     { 'from': new_L_r, 
-                      'to': edges_dict[L_out_l].to
+                      'to': edges_dict[L_out_r].to
                     },
                   ]
                 }).reduce((a,b)=>a.concat(b), [])
@@ -395,9 +446,12 @@ var app = new Vue({
 
             // delete edges
             Object.keys(edges_labeled).forEach(k1 => {
-              edges_labeled[k1].map(k2 => {
-                delete edges_dict[k2]
-              })
+              // only delete edges that belong to a branching port
+              if(is_branch[k1]) {
+                edges_labeled[k1].map(k2 => {
+                  delete edges_dict[k2]
+                })
+              }
             })
 
             break;
@@ -424,15 +478,37 @@ var app = new Vue({
         }
         
         // split on space and drop empty words (due to consecutive spaces)
-        var row = l.split(" ").filter(w => w.length > 0)
-        if(row.length <= 1) return null // these are filtered out later
+        var row_all = l.split(" ").filter(w => w.length > 0)
+        if(row_all.length == 0) return null // these are filtered out later
         
-        var out = {
-          'type': row[0],
-          'n1': row[1],
-          'n2': row.length >= 3 ? row[2] : null
+        // sanity check of length based on type
+        var row_type = row_all[0]
+        switch(row_type) {
+          case "beta":
+            if(row_all.length != 3) throw "beta should have 2 arguments. " + row_all.length + " found"
+            
+            var out = {
+              'type': row_type,
+              'n1': row_all[1],
+              'n2': row_all[2]
+            }
+            return out
+            break
+          case "dist":
+            if(row_all.length != 5) throw "dist should have 4 arguments. " + row_all.length + " found"
+            var out = {
+              'type': row_type,
+              'n_in': row_all[1],
+              'n_center': row_all[2],
+              'n_left': row_all[3],
+              'n_right': row_all[4]
+            }
+            return out
+            break
+          default:
+            throw "Unsupported command " + row_type + " encountered. Only beta and dist supported ATM"
         }
-        return out
+        
       }).filter(l => !!l)
     }
     

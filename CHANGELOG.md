@@ -1,3 +1,8 @@
+Version 0.0.7 (2019-04-18)
+
+* feature: change "dist" to require 4 arguments instead of just 1 argument
+
+
 Version 0.0.6 (2019-04-17)
 
 * enhancement: aesthetics
