@@ -7,7 +7,7 @@ function GraphVisualizerD3js() {
 
   this.dict2d3 = function(g1) {
     // make preliminary conversion of format
-    console.log("conversion in", utils.clone(g1))
+    //console.log("conversion in", utils.clone(g1))
 
     // utility map
     type_size_map = {'A': 6, 'L': 6, 'l': 3, 'm': 1, 'r': 1}
@@ -71,7 +71,7 @@ function GraphVisualizerD3js() {
     // combine links of inter-port and intra-port
     graph.links = l_core.concat(l_ports)
 
-    console.log("conversion out", utils.clone(graph))
+    //console.log("conversion out", utils.clone(graph))
 
     return graph
   }
@@ -88,10 +88,16 @@ function GraphVisualizerD3js() {
     var line = d3.line()
       .curve(d3.curveCatmullRom.alpha(0.5));
 
+    var radius = d3.scaleSqrt()
+        .range([0, 6]);
+
     var svgNew = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     svgNew.setAttribute("width",  "600") //960)
     svgNew.setAttribute("height", "600") // 600)
-    //svgNew.setAttribute("viewBox", "0.00 0.00 148.44 204.60")
+
+    // https://www.lifewire.com/svg-viewbox-attribute-3469829
+    // minx miny width height
+    //svgNew.setAttribute("viewBox", "0.00 0.00 148.44 204.60") // random numbers ... will be overwritten below
 
     var svg = d3.select(svgNew),
       width = +svg.attr("width"),
@@ -104,11 +110,18 @@ function GraphVisualizerD3js() {
           "link",
           d3.forceLink()
           //.distance(100)
-          .distance(function(d) { return ((radius(d.source.size) + radius(d.target.size) + 10)/(3*d.bond)); })
+          .distance(function(d) {
+            //if(d.source.id.indexOf(':core')!=-1 || d.target.id.indexOf(':core')!=-1) {
+            //  return 1
+            //}
+            //return 5
+            return ((radius(d.source.size) + radius(d.target.size) + 10)/(3*d.bond));
+
+          })
           .id(function(d) { return d.id; })
         )
       .force("charge", d3.forceManyBody().strength(-200)) // was -10
-      //.force("collide", d3.forceCollide(50))
+      .force("collide", d3.forceCollide(50))
       .force("center", d3.forceCenter(width / 2, height / 2))
       ;
 
@@ -146,6 +159,17 @@ function GraphVisualizerD3js() {
           .attr("transform", function(d) {
             return "translate(" + d.x + "," + d.y + ")";
           });
+
+        // re-center and re-scale view
+        // search for "center_view" on http://bl.ocks.org/pkerpedjiev/0389e39fad95e1cf29ce
+        // subtract 10 for some padding
+        min_x = d3.min(graph.nodes.map(function(d) {return d.x;})) - 100;
+        min_y = d3.min(graph.nodes.map(function(d) {return d.y;})) - 100;
+        max_x = d3.max(graph.nodes.map(function(d) {return d.x;})) + 100;
+        max_y = d3.max(graph.nodes.map(function(d) {return d.y;})) + 100;
+        mol_width = max_x - min_x;
+        mol_height = max_y - min_y;
+        svgNew.setAttribute("viewBox", min_x + " " + min_y + " " + mol_width + " " + mol_height) // random numbers ... will be overwritten below
       }
 
       // build the arrow.
@@ -176,9 +200,6 @@ function GraphVisualizerD3js() {
         .data(graph.nodes)
         .enter().append("g")
 
-      var radius = d3.scaleSqrt()
-          .range([0, 6]);
-
       node
         .append("circle")
 
@@ -187,6 +208,7 @@ function GraphVisualizerD3js() {
         .style("fill", function(d) { return d.colour; })
 
         //.attr("fill", function(d) { return color(d.group); })
+
         .call(d3.drag()
           .on("start", dragstarted)
           .on("drag", dragged)
@@ -208,6 +230,8 @@ function GraphVisualizerD3js() {
         .links(graph.links);
 
 
+
+
 /*
       let linkGen = d3.linkVertical().x(function(d) {
           return d.x;
@@ -225,7 +249,7 @@ function GraphVisualizerD3js() {
         });
 */
 
-    console.log("d3js done", svgNew) // svg
+    //console.log("d3js done", svgNew) // svg
     return svgNew
 
   }

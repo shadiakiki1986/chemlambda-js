@@ -11,9 +11,12 @@
 /////////////////////////////
 /////////////////////////////
 
-function LambdaReader() {
+function LambdaReader(gid) {
 
     var utils = new Utils()
+
+    // global ID register
+    this.gid = gid
 
     // utility function to gather key-value pairs of "variables"
     this.var2dict = function(json_in, vardict1) {
@@ -113,26 +116,6 @@ function LambdaReader() {
 
 
 
-    //------------------------------------------------------------
-    // utility function to get a new ID for a node
-    this.globalIdRegister = [] // global list of IDs
-    this.newNodeId = function(nodetype) {
-      var allIds = this.globalIdRegister.filter(x => x.startsWith(nodetype))
-      newId = nodetype + '0'
-      MAXNUM = 1000 // circuit breaker
-      for (var i = 0;
-        (i < MAXNUM) && (allIds.indexOf(newId) != -1); i++) {
-        newId = '' + nodetype + i;
-      }
-
-      if(i==MAXNUM) throw "The limit of maximum number of node IDs has been hit"
-
-      // append to global register
-      this.globalIdRegister = this.globalIdRegister.concat([newId])
-
-      //return
-      return newId
-    }
 
 
     //------------------------------------------------------------
@@ -165,7 +148,7 @@ function LambdaReader() {
           var envelopeLambdaStr = this.jsjson2lambda(json_in) // , vardict3, paramname)
           var bodyLambdaStr = this.jsjson2lambda(json_in.body)
 
-          var li1 = (json_in.id != null ? json_in.id.name : this.newNodeId("L"))
+          var li1 = (json_in.id != null ? json_in.id.name : this.gid.newNodeId("L"))
 
           var envelopeLambdaDict = {
             "type": "L",
@@ -200,7 +183,7 @@ function LambdaReader() {
           //retStmtLambdaStr = this.jsjson2lambda(retStmtDict, vardict3)
           //envelopeLambdaStr = this.jsjson2lambda(json_in, vardict3, paramname)
 
-          //var li1 = (json_in.id != null ? json_in.id.name : this.newNodeId("L"))
+          //var li1 = (json_in.id != null ? json_in.id.name : this.gid.newNodeId("L"))
 
           // FIXME
           // Check if `li1` is unique otherwsise issue a new one
@@ -227,7 +210,7 @@ function LambdaReader() {
           var bodyDict = this.jsjson2dict_nodes(json_in.body, vardict1, json_in.params[0].name)
           var bodyStr = this.jsjson2lambda(json_in.body, vardict1, json_in.params[0].name)
           var envStr = this.jsjson2lambda(json_in, vardict1, json_in.params[0].name)
-          var li2 = (json_in.id != null ? json_in.id.name : this.newNodeId("L"))
+          var li2 = (json_in.id != null ? json_in.id.name : this.gid.newNodeId("L"))
 
           //var o12 = li2 + " " + '[label="<lo> ' + paramname + ' |{<mi> '+ o2b2 + '|' + li2 + '} | <ro> λ' + paramname + '.'+ o2b2 + '"];'
           var o12 = {
@@ -271,7 +254,7 @@ function LambdaReader() {
           //  }
           //}
 
-          var nodeId = this.newNodeId("A")
+          var nodeId = this.gid.newNodeId("A")
 
           return o00.concat(arg_d).concat([{
             "type": "A",
@@ -368,11 +351,11 @@ function LambdaReader() {
     		if (gather[key].to.length == 0) {
     		  if(gather[key].from.type=='L' && gather[key].from.portname=='l') {
     		    var node_i = utils.clone(node_t)
-    		    node_i.id = self.newNodeId("T")
+    		    node_i.id = self.gid.newNodeId("T")
     		    return {'from': gather[key].from, 'to': node_i}
     		  } else {
     		    var node_i = utils.clone(node_frout)
-    		    node_i.id = self.newNodeId("FROUT")
+    		    node_i.id = self.gid.newNodeId("FROUT")
         		return {'from': gather[key].from, 'to': node_i}
     		  }
         }
@@ -380,7 +363,7 @@ function LambdaReader() {
         return gather[key].to.map(toNodeLabel => {
           	if(gather[key].from == null) {
       		    var node_i = utils.clone(node_frin)
-      		    node_i.id = self.newNodeId("FRIN")
+      		    node_i.id = self.gid.newNodeId("FRIN")
             	return {'from': node_i, 'to': toNodeLabel}
             }
 

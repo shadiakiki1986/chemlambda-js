@@ -2,9 +2,10 @@
 // plot graph of input function from the HTML text box
 
 
-var lr = new LambdaReader()
+var gid = new GlobalIdRegister() // shared between lambda reader and graph rewriter
+var lr = new LambdaReader(gid)
 var lt = new LambdaTerms()
-var gr = new GraphRewriter()
+var gr = new GraphRewriter(gid)
 var gvd3 = new GraphVisualizerD3js()
 var utils = new Utils()
 
@@ -101,11 +102,12 @@ var app = new Vue({
     "suggestedRwStep": 0,
 
     "suggestedRwMax": 25, // maximum steps to roll out each time
-    "suggestedRwMethod": "",
+    "suggestedRwMethod": "selected",
     "suggestedRwInProgress": false,
     //"dict2FromDict1Callback": false
     "suggestedRwHistory": [],
     "graphManager": "vizjs"
+
   },
 
   methods: {
@@ -123,7 +125,6 @@ var app = new Vue({
       this.jsAuto = ""
       this.dict1Auto = ""
       this.graph1Visible = true
-      this.graph2Visible = false
       this.rwAuto = utils.clone([])
       this.dict2tmp = ""
       this.dict2Auto = "" // utils.clone(this.dict1Auto) // without any re-writes
@@ -154,7 +155,6 @@ var app = new Vue({
       this.dict1Auto = utils.clone(this.dot1Manual)
 
       this.graph1Visible = true
-      this.graph2Visible = false
 
       if("rewrites" in this.jsExSelected)  {
         this.rwTxt = this.jsExSelected.rewrites
@@ -183,7 +183,6 @@ var app = new Vue({
         this.dict2tmp = utils.clone(this.dict2FromDict1Auto); // with re-writes
         this.dict2Auto = utils.clone(this.dict2tmp) // here we can copy right away and plot
         this.graph1Visible = false
-        this.graph2Visible = true
       } catch (e) {
         // statements to handle any exceptions
         console.error(e);
@@ -254,10 +253,16 @@ var app = new Vue({
       // method 2: calculate new graph based on current graph and re-writes
       this.suggestedRwHistory = this.suggestedRwHistory.concat([rwCurTxt])
       try {
-        //console.log("roll out single step ", rwCurTxt)
+
         var rwCurVal = gr.txt2array(rwCurTxt)
-        var lambda_dict = gr.apply_rewrites(utils.clone(this.dict2tmp), rwCurVal) // notice that this inputs dict2tmp and below updates it too
+
+        // apply rewrites
+        // notice that this inputs dict2tmp and below updates it too
+        var lambda_dict = gr.apply_rewrites(utils.clone(this.dict2tmp), rwCurVal)
+
+        // update the dict2tmp and update the global register in "lr"
         this.dict2tmp = utils.clone(lambda_dict)
+
       } catch (e) {
         // statements to handle any exceptions
         console.error(e);
@@ -271,7 +276,12 @@ var app = new Vue({
       }
 
       this.suggestedRwInProgress = false
+
       this.dict2Auto = utils.clone(this.dict2tmp) // copy to graph
+
+      // set visibility of graph after re-writes
+      this.graph1Visible = false
+
 
     }
 
@@ -351,7 +361,7 @@ var app = new Vue({
     "suggestedRwAll": function() {
       // Note that this is tied to dict2tmp and not dict2FromDict1Auto and not dict2Auto
       // This allows me to perform single-step rewrites while updating dict2tmp without drawing the graph
-      // in the `suggestedRwApply()` function
+      // in the `suggestedRwAppend()` function
 
       if(!this.dict2tmp) return []
 

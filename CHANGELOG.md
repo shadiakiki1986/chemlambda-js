@@ -1,3 +1,13 @@
+Version 0.0.8 (2019-04-22)
+
+* enhancement: clearer error message when including re-write
+* enhancement: factor out global ID register to continue IDs during re-writes after initial set
+* enhancement: add viewbox to d3.js usage so that the graph is zoomed out automatically to fit all nodes
+* enhancement: add collision force to d3js visualization
+* bugfix: single step for examples that have no re-writes was not allowing the user to change to "after re-writes" in the graph display
+* enhancement: remove unnecessary graph2Visible variable
+
+
 Version 0.0.7 (2019-04-18)
 
 * feature: change "dist" to require 4 arguments instead of just 1 argument

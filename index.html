@@ -466,10 +466,10 @@
           </div>
 
 
-          <div v-if="!error1Msg && (graph1Visible || rwAuto.length==0) && !!dot1Auto">
+          <div v-if="!error1Msg &&  graph1Visible && !!dot1Auto">
             Graph
 
-            <button @click="graph1Visible = !graph1Visible" class="btn btn-sm btn-info" :disabled="rwAuto.length==0 || !dot2Auto">
+            <button @click="graph1Visible = !graph1Visible" class="btn btn-sm btn-info" :disabled="!dot2Auto">
               before
             </button>
 
@@ -491,9 +491,9 @@
             <div id="graph1Cont" v-if="graphManager=='d3js'"></div>
           </div>
 
-          <div v-if="rwAuto.length > 0 && !!dot2Auto && !graph1Visible">
+          <div v-if="!error2Msg && !graph1Visible && !!dot2Auto">
             Graph
-            <button @click="graph1Visible = !graph1Visible" class="btn btn-sm btn-info" :disabled="rwAuto.length==0 || !dot2Auto">
+            <button @click="graph1Visible = !graph1Visible" class="btn btn-sm btn-info">
               after
             </button>
             re-writes
@@ -530,6 +530,7 @@
 
     <script src="Utils.js"></script>
     <script src="LambdaTerms.js"></script>
+    <script src="GlobalIdRegister.js"></script>
     <script src="LambdaReader.js"></script>
     <script src="GraphRewriter.js"></script>
     <script src="GraphVisualizerD3js.js"></script>
