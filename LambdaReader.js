@@ -126,7 +126,7 @@ function LambdaReader(gid) {
         // first call should be with "Program"
         if (json_in.type != "Program") throw "Should be a program"
         // first call should also clear the ID register
-        this.globalIdRegister = []
+        this.gid.globalIdRegister = []
       }
 
       if (vardict1 == undefined) vardict1 = {}
