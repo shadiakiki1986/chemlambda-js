@@ -91,6 +91,10 @@ function GraphVisualizerD3js() {
     var radius = d3.scaleSqrt()
         .range([0, 6]);
 
+    // Define the div for the tooltip
+    // http://bl.ocks.org/d3noob/a22c42db65eb00d4e369
+    var divTooltip = d3.select("#d3jsTooltip").style("opacity", 0);
+
     var svgNew = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     svgNew.setAttribute("width",  "600") //960)
     svgNew.setAttribute("height", "600") // 600)
@@ -169,7 +173,7 @@ function GraphVisualizerD3js() {
         max_y = d3.max(graph.nodes.map(function(d) {return d.y;})) + 100;
         mol_width = max_x - min_x;
         mol_height = max_y - min_y;
-        svgNew.setAttribute("viewBox", min_x + " " + min_y + " " + mol_width + " " + mol_height) // random numbers ... will be overwritten below
+        svgNew.setAttribute("viewBox", min_x + " " + min_y + " " + mol_width + " " + mol_height)
       }
 
       // build the arrow.
@@ -212,7 +216,25 @@ function GraphVisualizerD3js() {
         .call(d3.drag()
           .on("start", dragstarted)
           .on("drag", dragged)
-          .on("end", dragended));
+          .on("end", dragended))
+
+        // Add tooltip
+        .on("mouseover", function(d) {
+            divTooltip.transition()
+                .duration(200)
+                .style("opacity", .9);
+            divTooltip.html(d.id);
+            // FIXME this didnt work well
+            //    .style("left", (d.x) + "px")
+            //    .style("top", (d.y) + "px");
+          })
+
+        .on("mouseout", function(d) {
+            divTooltip.transition()
+                .duration(500)
+                .style("opacity", 0);
+        })
+      ;
 
       // add the text
       node.append("text")
@@ -228,7 +250,6 @@ function GraphVisualizerD3js() {
 
       simulation.force("link")
         .links(graph.links);
-
 
 
 

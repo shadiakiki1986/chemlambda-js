@@ -6,6 +6,8 @@ Version 0.0.8 (2019-04-22)
 * enhancement: add collision force to d3js visualization
 * bugfix: single step for examples that have no re-writes was not allowing the user to change to "after re-writes" in the graph display
 * enhancement: remove unnecessary graph2Visible variable
+* enhancement: add tooltip to nodes to be able to identify them when zoomed out too much
+* enhancement: aesthetics for row containing suggested re-writes
 
 
 Version 0.0.7 (2019-04-18)
