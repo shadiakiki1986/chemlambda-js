@@ -322,7 +322,7 @@ function LambdaReader(gid) {
 
                 if(gather[k2].from != nodeLabel) {
                   console.error("details for duplicate variable names error", gather)
-                  throw "Node label already set for " + k2 + " to be " + gather[k2].from + " and not " + nodeLabel + `.
+                  throw "Node label already set for " + k2 + " to be " + gather[k2].from.id + " and not " + nodeLabel + `.
                          Details in console.
                          Check if you have duplicate variable names and consider appending integer suffixes,
                          e.g. 'f' to 'f1' and 'f2'`

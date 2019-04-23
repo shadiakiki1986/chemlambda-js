@@ -351,6 +351,19 @@
               </button>
             </div>
 
+            <div v-if="error1Msg" class="alert alert-danger">
+              Error in graph before re-writes:
+              <br/>
+              {{error1Msg}}
+            </div>
+
+            <div v-if="error2Msg" class="alert alert-danger">
+              Error in graph after re-writes:
+              <br/>
+              {{error2Msg}}
+            </div>
+
+
             <div class="form-group">
               <input type="text" class="form-control form-control-sm" v-model="inTitle" placeholder="Title"></input>
             </div>
@@ -391,12 +404,6 @@
             <div class="form-group" v-if="dot1From == 'custom'">
               <label for="exampleFormControlTextarea3">Custom graph (dot script)</label>
 
-              <div v-if="error1Msg" class="alert alert-danger">
-                Error in graph before re-writes:
-                <br/>
-                {{error1Msg}}
-              </div>
-
               <textarea class="form-control" id="exampleFormControlTextarea3" rows="3" v-model="dot1Manual"></textarea>
 
               <span>
@@ -416,12 +423,6 @@
                   ?
                 </button>
               </label>
-
-              <div v-if="error2Msg" class="alert alert-danger">
-                Error in graph after re-writes:
-                <br/>
-                {{error2Msg}}
-              </div>
 
               <textarea class="form-control" id="exampleFormControlTextarea4" rows="3" v-model="rwTxt"></textarea>
 
