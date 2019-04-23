@@ -1,7 +1,13 @@
-// working demo at
-// https://jsfiddle.net/shadiakiki1986/b916cofL/
-
 function GraphVisualizerD3js() {
+  // Draw the graph with d3.js
+  //
+  // Working demo at
+  // https://jsfiddle.net/shadiakiki1986/b916cofL/
+  //
+  // Note that d3.js does nothing to reduce links that criss-cross
+  // Might want to use sigma.js
+  // https://stackoverflow.com/questions/29006725/avoid-links-criss-cross-overlap-in-d3-js-using-force-layout
+  //-------------------------------------------------------------------
 
   var utils = new Utils()
 
@@ -77,7 +83,7 @@ function GraphVisualizerD3js() {
   }
 
 
-  this.renderSVGElement = function(g1) {
+  this.renderSVGElement = function(g1, extendedLabels) {
     // inspired from http://imar.ro/~mbuliga/molecule_with_tricks.js
 
     var graph = this.dict2d3(utils.clone(g1))
@@ -85,11 +91,10 @@ function GraphVisualizerD3js() {
     //console.log("graph viz d3js received graph", graph.nodes, graph.links)
 
     // from https://cdn.rawgit.com/gmamaladze/d3-dot-graph/cf08847e/example/index.html
-    var line = d3.line()
-      .curve(d3.curveCatmullRom.alpha(0.5));
+    var line = d3.line().curve(d3.curveCatmullRom.alpha(0.5));
 
-    var radius = d3.scaleSqrt()
-        .range([0, 6]);
+    // https://github.com/d3/d3-scale#scaleSqrt
+    var radius = d3.scaleSqrt().range([0, 6]);
 
     // Define the div for the tooltip
     // http://bl.ocks.org/d3noob/a22c42db65eb00d4e369
@@ -124,9 +129,21 @@ function GraphVisualizerD3js() {
           })
           .id(function(d) { return d.id; })
         )
-      .force("charge", d3.forceManyBody().strength(-200)) // was -10
-      .force("collide", d3.forceCollide(50))
+
+      // nodes repel
+      //.force("charge", d3.forceManyBody().strength(-10))
+      .force("charge", d3.forceManyBody().strength(-50))
+      //.force("charge", d3.forceManyBody().strength(-200))
+      //.force("charge", d3.forceManyBody().strength(d => d.bond/6) )
+
+      // nodes avoid overlap
+      .force("collide", d3.forceCollide().radius(function(d) { return 1.5*radius(d.size);  }))
+
+      // center the nodes
       .force("center", d3.forceCenter(width / 2, height / 2))
+
+      // repelling circle
+      .force("center", d3.forceRadial(3600, width/2, height/2).strength(-0.002))
       ;
 
     function dragstarted(d) {
@@ -159,6 +176,7 @@ function GraphVisualizerD3js() {
             d.target.x + "," +
             d.target.y;
         });
+
         node
           .attr("transform", function(d) {
             return "translate(" + d.x + "," + d.y + ")";
@@ -236,13 +254,15 @@ function GraphVisualizerD3js() {
         })
       ;
 
-      // add the text
-      node.append("text")
-        .attr("x", 12)
-        .attr("dy", ".35em")
-        .text(function(d) {
-          return d.id;
-        });
+      if(extendedLabels) {
+        // add the text
+        node.append("text")
+          .attr("x", 12)
+          .attr("dy", ".35em")
+          .text(function(d) {
+            return d.id;
+          });
+      }
 
       simulation
         .nodes(graph.nodes)

@@ -1,3 +1,10 @@
+Version 0.0.9 (2019-04-23)
+
+* enhancement: d3js visualization to avoid text labels based on extendedLabel
+* enhancement: modify collision, charge, center forces and add a bounding circle force ... in an attempt to improve graph readability
+* enhancement: factor out code for plotting to avoid duplication
+
+
 Version 0.0.8 (2019-04-22)
 
 * enhancement: clearer error message when including re-write

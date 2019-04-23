@@ -463,35 +463,45 @@ Vue.config.errorHandler = function (err, vm, info) {
 }
 */
 
-// execute a function if both dot1Auto and graphManager change
-// https://github.com/vuejs/vue/issues/844
-app.$watch(
-    (vm) => (vm.dot1Auto, vm.graphManager, Object(new Date())),
-    function() {
+
+// wrapper function for plotting
+function doplot(plotTarget, self) {
       // cannot move this to a vue.js computed
       // because it returns its value inside a promise
-      if(!this.dot1Auto) return
 
-      var self = this
-      switch(this.graphManager) {
+      var dotIn = plotTarget==1 ? self.dot1Auto : self.dot2Auto
+
+      if(!dotIn) return
+
+      var dictIn = plotTarget==1 ? self.dict1Auto : self.dict2Auto
+
+      switch(self.graphManager) {
         case "vizjs":
           // convert to graph
           var viz = new Viz();
-          viz.renderSVGElement(this.dot1Auto)
+          viz.renderSVGElement(dotIn)
             .then(function(element) {
-              self.graph1Svg = element;
+              if(plotTarget==1) {
+                self.graph1Svg = element;
+              } else {
+                self.graph2Svg = element;
+              }
             })
             .catch(error => {
               // Create a new Viz instance (@see Caveats page for more info)
               viz = new Viz();
-              self.error1Msg = error
+              if(plotTarget==1) {
+                self.error1Msg = error
+              } else {
+                self.error2Msg = error
+              }
               console.error(error);
             });
           break
 
         case "d3js":
-          var svgElem = gvd3.renderSVGElement(this.dict1Auto)
-          var div = document.getElementById('graph1Cont');
+          var svgElem = gvd3.renderSVGElement(dictIn, self.extendedLabels)
+          var div = document.getElementById(plotTarget==1 ? 'graph1Cont' : 'graph2Cont');
           // this div is sometimes missing due to the envelope v-if in the html
           if(!!div) {
             div.innerHTML = "";
@@ -503,57 +513,27 @@ app.$watch(
         default:
           var e = "Unsupported graph visualization manager"
           // throw e
-          self.error1Msg = error
+          if(plotTarget==1) {
+            self.error1Msg = error
+          } else {
+            self.error2Msg = error
+          }
           console.error(error);
 
       }
     }
+
+
+
+// execute a function if both dot1Auto and graphManager change
+// https://github.com/vuejs/vue/issues/844
+app.$watch(
+    (vm) => (vm.dot1Auto, vm.graphManager, Object(new Date())),
+    function() { doplot(1, this) }
 )
 
 
 app.$watch(
     (vm) => (vm.dot2Auto, vm.graphManager, Object(new Date())),
-    function() {
-      // cannot move this to a vue.js computed
-      // because it returns its value inside a promise
-      if(!this.dot2Auto) return
-
-      var self = this;
-
-      switch(this.graphManager) {
-        case "vizjs":
-          // convert to graph
-          var viz = new Viz();
-          viz.renderSVGElement(this.dot2Auto)
-            .then(function(element) {
-              self.graph2Svg = element;
-            })
-            .catch(error => {
-              // Create a new Viz instance (@see Caveats page for more info)
-              viz = new Viz();
-              self.error2Msg = error
-              console.error(error);
-            });
-          break
-
-        case "d3js":
-          var svgElem = gvd3.renderSVGElement(this.dict2Auto)
-          var div = document.getElementById('graph2Cont');
-          // this div is sometimes not defined due to the envelope v-if
-          if(!!div) {
-            div.innerHTML = "";
-            div.appendChild(svgElem);
-          }
-          break
-
-        default:
-          var e = "Unsupported graph visualization manager"
-          // throw e
-          self.error1Msg = error
-          console.error(error);
-
-      }
-
-
-    }
+    function() { doplot(2, this) }
 )
