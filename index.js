@@ -62,6 +62,17 @@ beta L8 A2
 # dist L2  L3 A0  all
 # dist L2  L3 A0  A7
 `
+  },
+  {"title":"successor(zero)",
+   "description": "SUCC(zero)",
+   "javascript": `SUCC_0 => {
+  var SUCC = ns => fs => xs => fs(ns(fs)(xs))
+  var zero = f0 => x0 => x0
+  var result = SUCC(zero)
+  return bla
+}`,
+      "rewrites": `beta L2 A3
+`
   }
 ];
 

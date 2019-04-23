@@ -4,6 +4,7 @@ Version 0.0.9 (2019-04-23)
 * enhancement: modify collision, charge, center forces and add a bounding circle force ... in an attempt to improve graph readability
 * enhancement: factor out code for plotting to avoid duplication
 * bugfix: error messages not displayed .. fixed
+* enhancement: add example `succ(0)`
 
 
 Version 0.0.8 (2019-04-22)
