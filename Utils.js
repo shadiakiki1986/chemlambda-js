@@ -21,6 +21,24 @@ function Utils() {
             case "m": return 'o'
             case "r": return 'i'
           }
+      	case "T":
+        	switch(side) {
+          	case "l": return 'x'
+            case "m": return 'i'
+            case "r": return 'x'
+          }
+      	case "FRIN":
+        	switch(side) {
+          	case "l": return 'x'
+            case "m": return 'o'
+            case "r": return 'x'
+          }
+      	case "FROUT":
+        	switch(side) {
+          	case "l": return 'x'
+            case "m": return 'i'
+            case "r": return 'x'
+          }
       }
       throw "type/side pair not supoprted yet " + type + "/" + side
     }
