@@ -17,14 +17,20 @@ var jsExamplesOpt = [
     "javascript": "u=>x",
     "default": true
   },
+
+
   { "title": "λn.n(λu.x)",
     "description": "λn.n(λu.x)",
     "javascript": "n=> n (u=>x)"
   },
+
+
   { "title": "λf.λx.x(y)",
     "description": "λf.λx.x(y)",
     "javascript": "f => x => x(y)"
   },
+
+
   {"title":"identity(zero)==zero",
    "description": "Re-writes converting zero to zero via identity",
    "javascript": `_ => {
@@ -38,6 +44,8 @@ var jsExamplesOpt = [
 }`,
       "rewrites": `beta L0 A0`
   },
+
+
   {"title":"constant(whatever)==constant",
    "description": "Re-writes converting anything to a constant via the constant function",
    "javascript": `_ => {
@@ -49,6 +57,8 @@ return _
 }`,
       "rewrites": `beta L0 A0`
   },
+
+
   {"title":"successor(zero)==one",
    "description": "Re-writes converting zero to one",
    "javascript": `_ => {
@@ -62,6 +72,8 @@ return _
 beta L4 A0
 beta L3 A1`
   },
+
+
   {"title":"successor(successor(zero))==two",
    "description": "Re-writes converting zero to two",
    "javascript": `_ => {
@@ -75,6 +87,47 @@ beta L3 A1`
 beta L4 A3
 beta L3 A0`
   },
+
+
+  {"title":"predecessor(one) == zero",
+   "description": "PRED(one) == zero",
+   "javascript": `_ => {
+  // PRED := λn.λf.λx.n (λg.λh.h (g f)) (λu.x) (λu.u)
+  var PRED = n => f1 => x1 => {
+    var L4 = u1 => x1
+    var L5 = u2 => u2
+    var L6 = g => h => h(g(f1))
+    return ((n(L6))(L4))(L5)
+  }
+
+  // one := λf.λx.(f x)
+  var one = f2 => x2 => (f2(x2))
+  var zero = fe => xe => xe
+
+  // apply PRED to three
+  var PRED1 = PRED(one)
+
+  return _
+}`,
+      "rewrites": `beta L3 A0
+beta L6 A6
+beta L2 A1
+beta L8 A2
+beta L7 A5
+beta L5 A3
+beta L4 A4
+
+# the below re-writes get the result "flipped"
+#beta L2 A1
+#beta L6 A2
+#beta L3 A6
+#beta L8 A0
+#beta L0 A3
+#beta L7 A5
+#beta L1 A4`
+  },
+
+
   {"title":"predecessor(three)",
    "description": "PRED(three)",
    "javascript": `_ => {
@@ -102,8 +155,7 @@ beta L8 A2
 # dist all L3 all all
 # dist L2  L3 all all
 # dist L2  L3 A0  all
-# dist L2  L3 A0  A7
-`
+# dist L2  L3 A0  A7`
   }
 ];
 
