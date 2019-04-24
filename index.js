@@ -76,6 +76,20 @@ beta L8 A2
 beta L4 A0
 beta L3 A1
 beta L3 A1`
+  },
+  {"title":"identity(zero)==zero",
+   "description": "Re-writes converting zero to zero via identity",
+   "javascript": `_ => {
+
+  var ID = xs => xs
+  var expected = fe => xe => xe
+  var zero = fa => xa => xa
+  var actual = ID(zero)
+
+  return __
+}`,
+      "rewrites": `beta L0 A0
+beta L0 A0`
   }
 ];
 

@@ -1,6 +1,7 @@
 Version 0.1.0 (2019-04-24)
 
 * feature: modify example `succ(zero)` to have first set of re-writes converting zero to one via successor
+* feature: add example `identity(zero)==zero`
 
 
 Version 0.0.9 (2019-04-23)
