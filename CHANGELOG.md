@@ -1,3 +1,9 @@
+Version 0.1.1 (2019-04-24)
+
+* feature: account for loops in beta re-writes .. now the identity test works
+* enhancement: minor fixes to examples and drop redundant examples
+
+
 Version 0.1.0 (2019-04-24)
 
 * feature: modify example `succ(zero)` to have first set of re-writes converting zero to one via successor

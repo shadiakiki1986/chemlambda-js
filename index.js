@@ -25,22 +25,10 @@ var jsExamplesOpt = [
     "description": "λf.λx.x(y)",
     "javascript": "f => x => x(y)"
   },
-  { "title": "three",
-    "description": "three := λf.λx.f(f(f x))",
-    "javascript": "f => x => f(f(f(x)))"
-  },
-  { "title": "predecessor",
-    "description": "PRED := λn.λf.λx.n (λg.λh.h (g f)) (λu.x) (λu.u)",
-    "javascript": `n => f => x => {
-  var L4 = u1 => x
-  var L5 = u2 => u2 // notice that this is u2 (versus u1 above) instead of plain "u"
-  var L6 = g => h => h(g(f))
-  return ((n(L6))(L4))(L5)
-}`
-  },
   {"title":"predecessor(three)",
    "description": "PRED(three)",
-   "javascript": `PRED3 => {
+   "javascript": `_ => {
+  // PRED := λn.λf.λx.n (λg.λh.h (g f)) (λu.x) (λu.u)
   var PRED = n => f1 => x1 => {
     var L4 = u1 => x1
     var L5 = u2 => u2
@@ -48,9 +36,13 @@ var jsExamplesOpt = [
     return ((n(L6))(L4))(L5)
   }
 
+  // three := λf.λx.f(f(f x))
   var three = f2 => x2 => f2(f2(f2(x2)))
 
-  return PRED(three)
+  // apply PRED to three
+  var PRED3 = PRED(three)
+
+  return _
 }`,
       "rewrites": `beta L6 A8
 beta L8 A2
@@ -65,12 +57,12 @@ beta L8 A2
   },
   {"title":"successor(zero)==one",
    "description": "Re-writes converting zero to one",
-   "javascript": `SUCC_0 => {
+   "javascript": `_ => {
   var SUCC = ns => fs => xs => fs(ns(fs)(xs))
   var zero = f0 => x0 => x0
   var actual_one = SUCC(zero)
   var expected_one = f1 => x1 => f1(x1) // for comparison
-  return bla
+  return _
 }`,
       "rewrites": `beta L2 A3
 beta L4 A0
@@ -86,7 +78,7 @@ beta L3 A1`
   var zero = fa => xa => xa
   var actual = ID(zero)
 
-  return __
+  return _
 }`,
       "rewrites": `beta L0 A0
 beta L0 A0`
@@ -95,10 +87,9 @@ beta L0 A0`
    "description": "Re-writes converting anything to a constant via the constant function",
    "javascript": `_ => {
 
-var constant_actual = fa => xa
-var constant_expected = fe => xe
+var constant = fa => xa
 var whatever = fw => xw
-var actual = constant_actual(whatever)
+var actual = constant(whatever)
 return _
 }`,
       "rewrites": `beta L0 A0`

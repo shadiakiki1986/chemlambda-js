@@ -55,21 +55,79 @@ function GraphRewriter(gid) {
             // add edges
             var el1 = edges_labeled["L_in"].map(L_in => {
                 return edges_labeled["A_out"].map(A_out => {
-                  return {
-                    'from': edges_dict[L_in].from,
-                    'to': edges_dict[A_out].to
+                  if(edges_dict[L_in].from.id == edges_dict[L_in].to.id) {
+
+                    if(edges_dict[A_out].from.id == edges_dict[A_out].to.id) {
+                      //console.log("// This is a case of loops on L and on A")
+                      // So, do nothing (maybe inconsistent with chemlambda?)
+                      return [null]
+                    } else {
+                      //console.log("// This is a case of a loop on the L but not on A")
+                      // So, do nothing because this case is handled in the A_in section below
+                      return [null]
+                    }
+
+                  } else {
+
+                    if(edges_dict[A_out].from.id == edges_dict[A_out].to.id) {
+                      //console.log("// This is a case of loops on A but not on L")
+                      // So, make a direct connection between L_in and L_out_notA
+                      return edges_labeled["L_out_notA"].map(L_out_notA => {
+                        return {
+                          'from': edges_dict[L_in].from,
+                          'to': edges_dict[L_out_notA].to
+                        }
+                      })
+                    } else {
+                      //console.log("// this is a case of a loop on neither L nor A")
+                      return [{
+                        'from': edges_dict[L_in].from,
+                        'to': edges_dict[A_out].to
+                      }]
+                    }
+
                   }
-                })
-              }).reduce((a,b)=>a.concat(b), [])
+                }).reduce((a,b)=>a.concat(b), [])
+              }).reduce((a,b)=>a.concat(b), []).filter(x => !!x)
 
             var el2 = edges_labeled["A_in_notL"].map(A_in_notL => {
                 return edges_labeled["L_out_notA"].map(L_out_notA => {
-                  return {
-                    'from': edges_dict[A_in_notL].from,
-                    'to': edges_dict[L_out_notA].to
+
+                  if(edges_dict[A_in_notL].from.id == edges_dict[A_in_notL].to.id) {
+
+                    if(edges_dict[L_out_notA].from.id == edges_dict[L_out_notA].to.id) {
+                      //console.log("// This is a case of loops on L and on A")
+                      // So, do nothing (maybe inconsistent with chemlambda?)
+                      return [null]
+                    } else {
+                      //console.log("// This is a case of a loop on the A but not on L")
+                      // So, do nothing since handled above
+                      return [null]
+                    }
+
+                  } else {
+
+                    if(edges_dict[L_out_notA].from.id == edges_dict[L_out_notA].to.id) {
+                      //console.log("// This is a case of loops on L but not on A")
+                      // So, make a direct connection between A_in_notL and A_out
+                      return edges_labeled["A_out"].map(A_out => {
+                        return {
+                          'from': edges_dict[A_in_notL].from,
+                          'to': edges_dict[A_out].to
+                        }
+                      })
+                    } else {
+                      //console.log("// this is a case of a loop on neither L nor A")
+                      return [{
+                        'from': edges_dict[A_in_notL].from,
+                        'to': edges_dict[L_out_notA].to
+                      }]
+                    }
+
                   }
-                })
-              }).reduce((a,b)=>a.concat(b), [])
+
+                }).reduce((a,b)=>a.concat(b), []).filter(x => !!x)
+              }).reduce((a,b)=>a.concat(b), []).filter(x => !!x)
 
             //console.log("edges labeled", edges_labeled)
             var lr = new LambdaReader()
