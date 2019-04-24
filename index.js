@@ -72,7 +72,7 @@ beta L8 A2
   var expected_one = f1 => x1 => f1(x1) // for comparison
   return bla
 }`,
-      "rewrites": `beta L2 A4
+      "rewrites": `beta L2 A3
 beta L4 A0
 beta L3 A1
 beta L3 A1`
