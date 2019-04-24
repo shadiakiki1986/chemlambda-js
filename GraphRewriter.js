@@ -52,7 +52,11 @@ function GraphRewriter(gid) {
               "L_out_notA": Object.keys(edges_dict).filter(k => (edges_dict[k].from.id==n1.id)&&(edges_dict[k].to.id!=n2.id))
             }
 
-            // add edges
+            // Add edges
+            // Take into account loops on L and/or on A
+            // Ref:
+            // Graphic lambda calculus, Marius Buliga. This version:  23.05.2013. Page 5
+            // http://imar.ro/~mbuliga/graphic_revised.pdf
             var el1 = edges_labeled["L_in"].map(L_in => {
                 return edges_labeled["A_out"].map(A_out => {
                   if(edges_dict[L_in].from.id == edges_dict[L_in].to.id) {

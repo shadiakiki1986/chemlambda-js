@@ -25,6 +25,56 @@ var jsExamplesOpt = [
     "description": "λf.λx.x(y)",
     "javascript": "f => x => x(y)"
   },
+  {"title":"identity(zero)==zero",
+   "description": "Re-writes converting zero to zero via identity",
+   "javascript": `_ => {
+
+  var ID = xs => xs
+  var expected = fe => xe => xe
+  var zero = fa => xa => xa
+  var actual = ID(zero)
+
+  return _
+}`,
+      "rewrites": `beta L0 A0`
+  },
+  {"title":"constant(whatever)==constant",
+   "description": "Re-writes converting anything to a constant via the constant function",
+   "javascript": `_ => {
+
+var constant = fa => xa
+var whatever = fw => xw
+var actual = constant(whatever)
+return _
+}`,
+      "rewrites": `beta L0 A0`
+  },
+  {"title":"successor(zero)==one",
+   "description": "Re-writes converting zero to one",
+   "javascript": `_ => {
+  var SUCC = ns => fs => xs => fs(ns(fs)(xs))
+  var zero = f0 => x0 => x0
+  var actual_one = SUCC(zero)
+  var expected_one = fe => xe => fe(xe) // for comparison
+  return _
+}`,
+      "rewrites": `beta L2 A3
+beta L4 A0
+beta L3 A1`
+  },
+  {"title":"successor(successor(zero))==two",
+   "description": "Re-writes converting zero to two",
+   "javascript": `_ => {
+  var SUCC = ns => fs => xs => fs(ns(fs)(xs))
+  var zero = f0 => x0 => x0
+  var actual_two = SUCC(SUCC(zero))
+  var expected_two = fe => xe => fe(fe(xe)) // for comparison
+  return _
+}`,
+      "rewrites": `beta L2 A4
+beta L4 A3
+beta L3 A0`
+  },
   {"title":"predecessor(three)",
    "description": "PRED(three)",
    "javascript": `_ => {
@@ -54,45 +104,6 @@ beta L8 A2
 # dist L2  L3 A0  all
 # dist L2  L3 A0  A7
 `
-  },
-  {"title":"successor(zero)==one",
-   "description": "Re-writes converting zero to one",
-   "javascript": `_ => {
-  var SUCC = ns => fs => xs => fs(ns(fs)(xs))
-  var zero = f0 => x0 => x0
-  var actual_one = SUCC(zero)
-  var expected_one = f1 => x1 => f1(x1) // for comparison
-  return _
-}`,
-      "rewrites": `beta L2 A3
-beta L4 A0
-beta L3 A1
-beta L3 A1`
-  },
-  {"title":"identity(zero)==zero",
-   "description": "Re-writes converting zero to zero via identity",
-   "javascript": `_ => {
-
-  var ID = xs => xs
-  var expected = fe => xe => xe
-  var zero = fa => xa => xa
-  var actual = ID(zero)
-
-  return _
-}`,
-      "rewrites": `beta L0 A0
-beta L0 A0`
-  },
-  {"title":"constant(whatever)==constant",
-   "description": "Re-writes converting anything to a constant via the constant function",
-   "javascript": `_ => {
-
-var constant = fa => xa
-var whatever = fw => xw
-var actual = constant(whatever)
-return _
-}`,
-      "rewrites": `beta L0 A0`
   }
 ];
 
