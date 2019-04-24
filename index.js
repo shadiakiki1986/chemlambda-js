@@ -63,16 +63,19 @@ beta L8 A2
 # dist L2  L3 A0  A7
 `
   },
-  {"title":"successor(zero)",
-   "description": "SUCC(zero)",
+  {"title":"successor(zero)==one",
+   "description": "Re-writes converting zero to one",
    "javascript": `SUCC_0 => {
   var SUCC = ns => fs => xs => fs(ns(fs)(xs))
   var zero = f0 => x0 => x0
-  var result = SUCC(zero)
+  var actual_one = SUCC(zero)
+  var expected_one = f1 => x1 => f1(x1) // for comparison
   return bla
 }`,
-      "rewrites": `beta L2 A3
-`
+      "rewrites": `beta L2 A4
+beta L4 A0
+beta L3 A1
+beta L3 A1`
   }
 ];
 
