@@ -90,6 +90,18 @@ beta L3 A1`
 }`,
       "rewrites": `beta L0 A0
 beta L0 A0`
+  },
+  {"title":"constant(whatever)==constant",
+   "description": "Re-writes converting anything to a constant via the constant function",
+   "javascript": `_ => {
+
+var constant_actual = fa => xa
+var constant_expected = fe => xe
+var whatever = fw => xw
+var actual = constant_actual(whatever)
+return _
+}`,
+      "rewrites": `beta L0 A0`
   }
 ];
 

@@ -15,6 +15,10 @@ function LambdaReader(gid) {
 
     var utils = new Utils()
 
+    // list of nodes (in dict format)
+    // This is a property of the class so that it can be modified in jsjson2dict_edges
+    this.dict_nodes = null
+
     // global ID register
     this.gid = gid
 
@@ -295,13 +299,16 @@ function LambdaReader(gid) {
 
     //-----------------------------------
 
-    this.jsjson2dict_edges = function(json_out) {
+    this.jsjson2dict_edges = function() {
       // first gather data in an associative array of structure
       // key = from node
       // value = list of to nodes
       var gather = {}
       var self = this
-      json_out.forEach(row => {
+
+      // iterate over a copy to be able to append new nodes to the original
+      var dict_nodes_copy = utils.clone(this.dict_nodes)
+      dict_nodes_copy.forEach(row => {
       	['l', 'm', 'r'].forEach(k1 => {
 
     			var k2 = row[k1]
@@ -352,10 +359,12 @@ function LambdaReader(gid) {
     		  if(gather[key].from.type=='L' && gather[key].from.portname=='l') {
     		    var node_i = utils.clone(node_t)
     		    node_i.id = self.gid.newNodeId("T")
+    		    self.dict_nodes = self.dict_nodes.concat([node_i])
     		    return {'from': gather[key].from, 'to': node_i}
     		  } else {
     		    var node_i = utils.clone(node_frout)
     		    node_i.id = self.gid.newNodeId("FROUT")
+    		    self.dict_nodes = self.dict_nodes.concat([node_i])
         		return {'from': gather[key].from, 'to': node_i}
     		  }
         }
@@ -364,6 +373,7 @@ function LambdaReader(gid) {
           	if(gather[key].from == null) {
       		    var node_i = utils.clone(node_frin)
       		    node_i.id = self.gid.newNodeId("FRIN")
+      		    self.dict_nodes = self.dict_nodes.concat([node_i])
             	return {'from': node_i, 'to': toNodeLabel}
             }
 
@@ -375,9 +385,18 @@ function LambdaReader(gid) {
 
 
     this.jsjson2dict_main = function(json_in) {
-      var dict_nodes = this.jsjson2dict_nodes(json_in);
-      var dict_edges = this.jsjson2dict_edges(dict_nodes);
-      return {"nodes": dict_nodes, "edges": dict_edges}
+      // reset
+      this.dict_nodes = null
+
+      // calculate list of nodes
+      this.dict_nodes = this.jsjson2dict_nodes(json_in);
+
+      // calculate list of edges
+      // this also appends nodes FROUT, FRIN, T if needed
+      dict_edges = this.jsjson2dict_edges();
+
+      // done
+      return {"nodes": this.dict_nodes, "edges": dict_edges}
     }
 
 
@@ -405,6 +424,19 @@ function LambdaReader(gid) {
             row.id + ' | <mo> ' +
             row.m + '} | <ri> ' +
             row.r + '"];')
+
+        case "T":
+          //T [ shape=point, color=black, style=filled ]
+          return (row.id) + " [ shape=point, color=black, style=filled ]"
+
+        case "FRIN":
+          //FRIN [ style=filled, color=blue ]
+          return (row.id) + " [ style=filled, color=blue ]"
+
+        case "FROUT":
+          //FROUT [ style=filled, color=blue ]`
+          return (row.id) + " [ style=filled, color=blue ]"
+
         default:
           throw "Unsupported row type " + row.type
       }
@@ -424,38 +456,39 @@ function LambdaReader(gid) {
 
       // utility variables for convert dict to dot
       var dot_header_all = `
-        digraph G {
-        rankdir = TB;
-      `
+digraph G {
+rankdir = TB;`
       var dot_header_l = `
-        // defaults for L
-        node [shape=record, color=red, style=filled];
-      `
+// defaults for L
+node [shape=record, color=red, style=filled];`
       var dot_header_a = `
-        // defaults for A
-        node [shape=record, color=green, style=filled];
-      `
+// defaults for A
+node [shape=record, color=green, style=filled];`
       var dot_header_other = `
-        // other nodes, e.g. T, FROUT, FRIN
-        node [shape=record, color=blue, style=filled];
-        //T [ shape=point, color=black, style=filled ]
-        //FRIN [ style=filled, color=blue ]
-        //FROUT [ style=filled, color=blue ]
-        `
+// other nodes, e.g. T, FROUT, FRIN
+node [shape=record, color=blue, style=filled];
+//T [ shape=point, color=black, style=filled ]
+//FRIN [ style=filled, color=blue ]
+//FROUT [ style=filled, color=blue ]`
+      var dot_header_edges = `
+// edges`
 
       // reduce list to dot file
       //console.log("program", o)
       var o_nodes_L = o_dict.nodes.filter(b => (b.type == "L")).map(b => dict2dot_nodes(b, extendedLabels)).reduce((a, b) => a + "\n" + b, "")
       var o_nodes_A = o_dict.nodes.filter(b => (b.type == "A")).map(b => dict2dot_nodes(b, extendedLabels)).reduce((a, b) => a + "\n" + b, "")
+      var o_nodes_other = o_dict.nodes.filter(b => (b.type != "L" && b.type != "A")).map(b => dict2dot_nodes(b, extendedLabels)).reduce((a, b) => a + "\n" + b, "")
       var o_edges_s = o_dict.edges.map(this.edgeDict2dot).reduce((a, b) => a + "\n" + b, "")
 
       return (
-        dot_header_all +
-        dot_header_l +
+        dot_header_all + '\n' +
+        dot_header_l + '\n' +
         o_nodes_L + '\n' +
-        dot_header_a +
+        dot_header_a + '\n' +
         o_nodes_A + '\n' +
-        dot_header_other +
+        dot_header_other + '\n' +
+        o_nodes_other + '\n' +
+        dot_header_edges + '\n' +
         o_edges_s + '\n}'
       )
     }

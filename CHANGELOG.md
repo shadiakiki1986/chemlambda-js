@@ -2,6 +2,9 @@ Version 0.1.0 (2019-04-24)
 
 * feature: modify example `succ(zero)` to have first set of re-writes converting zero to one via successor
 * feature: add example `identity(zero)==zero`
+* bugfix: `jsjson2dict_main` now able to add new nodes for FRIN, FROUT, T
+* bugfix: conversion to dot script no longer only exports nodes for A and L but also for FRIN, FROUT, T
+* feature: add example `constant(whatever)==constant`
 
 
 Version 0.0.9 (2019-04-23)
