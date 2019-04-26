@@ -1,8 +1,13 @@
+Version 0.1.2 (2019-04-27)
+
+* feature: added example `predecessor(two)==one`
+
+
 Version 0.1.1 (2019-04-24)
 
 * feature: account for loops in beta re-writes .. now the identity test works
 * enhancement: minor fixes to examples and drop redundant examples
-* feature: implement pair/type T/FRIN/FROUT with m/l/r in Utils.type_side_to_inout
+* feature: implement pair/type T/FRIN/FROUT with m/l/r in `Utils.type_side_to_inout`
 * enhancement: add reference to Buliga write-up on beta re-writes in GraphRewriter.js
 * feature: add example `predecessor(one)`
 

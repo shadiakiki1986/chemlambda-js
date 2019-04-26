@@ -128,6 +128,40 @@ beta L4 A4
   },
 
 
+
+  {"title":"predecessor(two) == one",
+   "description": "PRED(two) == one",
+   "javascript": `_ => {
+  // PRED := λn.λf.λx.n (λg.λh.h (g f)) (λu.x) (λu.u)
+  var PRED = n => f1 => x1 => {
+    var L4 = u1 => x1
+    var L5 = u2 => u2
+    var L6 = g => h => h(g(f1))
+    return ((n(L6))(L4))(L5)
+  }
+
+  // one := λf.λx.(f x)
+  var two = f2 => x2 => f2(f2(x2))
+  var one = fe => xe => (fe(xe))
+
+  // apply PRED to three
+  var PRED1 = PRED(two)
+
+  return _
+}`,
+      "rewrites": `# the following re-writes result in an "almost one"
+# since the arrow from the L to the A is on its right, but should be on its left
+beta L6 A8 # PRED(two) -> n
+# rule: beta on L connected to A:left
+beta L8 A2 # n(L6)
+beta L7 A3
+beta L3 A6
+beta L2 A4
+beta L1 A1
+beta L0 A5`
+  },
+
+
   {"title":"predecessor(three)",
    "description": "PRED(three)",
    "javascript": `_ => {
