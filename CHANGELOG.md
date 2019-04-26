@@ -1,6 +1,7 @@
 Version 0.1.2 (2019-04-27)
 
 * feature: added example `predecessor(two)==one`
+* feature: add example `ackermann(zero)`
 
 
 Version 0.1.1 (2019-04-24)

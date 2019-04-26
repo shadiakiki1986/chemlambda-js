@@ -190,6 +190,39 @@ beta L8 A2
 # dist L2  L3 all all
 # dist L2  L3 A0  all
 # dist L2  L3 A0  A7`
+  },
+
+
+  {"title":"ackermann(zero)",
+   "description": "ackermann(zero)",
+   "javascript": `_ => {
+  var ifthenelse = p => a => b => p(a)(b)
+  var TRUE = xT => yT => xT
+  var FALSE = xF => yF => yF
+  var ISZERO = n_is0 => n_is0 (x_is0 => FALSE) (TRUE)
+  var PRED = n_pred => f_pred => x_pred => {
+    var L4_pred = u1_pred => x_pred
+    var L5_pred = u2_pred => u2_pred
+    var L6_pred = g_pred => h_pred => h_pred(g_pred(f_pred))
+    return ((n_pred(L6_pred))(L4_pred))(L5_pred)
+  }
+  var SUB = m_sub => n_sub => n_sub(PRED(m_sub))
+  var LEQ = m_leq => n_leq => ISZERO (SUB(m_leq, n_leq))
+  var AND = p_and => q_and => p_and(q_and)(p_and)
+  var SUCC = n_succ => f_succ => x_succ => f_succ(n_succ(f_succ)(x_succ))
+  var one = f1 => x1 => f1(x1)
+  var zero = f0 => x0 => (x0)
+  var ack = function(m, n) {
+    var e2 = ifthenelse(AND(LEQ(n,zero), LEQ(zero,n)) , one , ack(m, PRED(n)))
+    var e1 = ack(PRED(m),   e2)
+    return ifthenelse(AND(LEQ(m,zero), LEQ(zero,m)), SUCC(n) , e1);
+  }
+  var two = f2 => x2 => f2(f2(x2))
+  var ack_0_0 = ack(zero, zero)
+
+  return _
+}`,
+      "rewrites": ``
   }
 ];
 
