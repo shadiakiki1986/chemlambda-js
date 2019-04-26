@@ -193,8 +193,8 @@ beta L8 A2
   },
 
 
-  {"title":"ackermann(zero)",
-   "description": "ackermann(zero)",
+  {"title":"ackermann(zero, zero)",
+   "description": "ackermann(zero, zero)",
    "javascript": `_ => {
   var ifthenelse = p => a => b => p(a)(b)
   var TRUE = xT => yT => xT
