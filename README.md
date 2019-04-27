@@ -79,3 +79,9 @@ Launch tests
 ## License
 
 Similar to [chemlabda-gui](https://github.com/chorasimilarity/chemlambda-gui/)
+
+
+## Related
+
+- chorasimilarity's [chemlabda-gui](https://github.com/chorasimilarity/chemlambda-gui/)
+- jacksongl's [lambda calculus interpreter](https://jacksongl.github.io/files/demo/lambda/index.htm#firstPage) ([src](https://github.com/JacksonGL/jacksongl.github.io/tree/master/files/demo/lambda))
