@@ -1,4 +1,17 @@
-Version 0.1.2 (2019-04-27)
+Version 0.1.3 (2019-04-27)
+
+* feature: use variable names and function names defined by user in lambda node IDs instead of automatically generating them
+  * refactor all examples' re-writes to use these IDs instead of the automatic conversion
+  * this solves the issue of automatically generated IDs changing when the javascript input is shuffled
+    * and hence the re-writes defined were no longer valid
+    * (missing IDs or pointing to other nodes than originally intended)
+* feature: add example of `2+2 + 2+2 + 3+3`
+* enhancement: clarified in main page, section for re-write syntax, that L should be in left of A for lambda-calculus style beta reduction
+* enhancement: rename `paramname` to `definedName`
+* feature: use lambda function's signature as node name of ArrowFunctionExpression
+
+
+Version 0.1.2 (2019-04-26)
 
 * feature: added example `predecessor(two)==one`
 * feature: add example `ackermann(zero)`

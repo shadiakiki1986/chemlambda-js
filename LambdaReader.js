@@ -66,7 +66,7 @@ function LambdaReader(gid) {
     // https://github.com/pegjs/pegjs/blob/master/examples/javascript.pegjs
     // https://raw.githubusercontent.com/pegjs/pegjs/master/examples/javascript.pegjs
     // https://cdn.jsdelivr.net/gh/pegjs/pegjs/examples/javascript.pegjs
-    this.jsjson2lambda = function(json_in, vardict1, paramname) {
+    this.jsjson2lambda = function(json_in, vardict1, definedName) {
       var out = ""
       //var i = json_in // .body[0]
       //console.log("convert", json_in, vardict1)
@@ -124,7 +124,7 @@ function LambdaReader(gid) {
 
     //------------------------------------------------------------
     // similar to this.jsjson2lambda but for outputting mol file
-    this.jsjson2dict_nodes = function(json_in, vardict1, paramname) {
+    this.jsjson2dict_nodes = function(json_in, vardict1, definedName) {
       var out = []
       if (vardict1 == undefined) {
         // first call should be with "Program"
@@ -134,10 +134,11 @@ function LambdaReader(gid) {
       }
 
       if (vardict1 == undefined) vardict1 = {}
-      if (paramname == undefined) paramname = undefined // FIXME should use `null` isntead of `undefined`
+      if (definedName == undefined) definedName = undefined // FIXME should use `null` isntead of `undefined`
 
       //var i = json_in // .body[0]
       //console.log("convert", json_in.type, json_in)
+      //console.log("definedName", definedName)
       switch (json_in.type) {
         case "Program":
           var o_dict = this.jsjson2dict_nodes(json_in.body[0], vardict1)
@@ -149,10 +150,17 @@ function LambdaReader(gid) {
 
           var bodyLambdaDict = this.jsjson2dict_nodes(json_in.body, vardict1, json_in.params[0].name)
           // result = result[0] // keeping it as array below for compliance
-          var envelopeLambdaStr = this.jsjson2lambda(json_in) // , vardict3, paramname)
+          var envelopeLambdaStr = this.jsjson2lambda(json_in) // , vardict3, definedName)
           var bodyLambdaStr = this.jsjson2lambda(json_in.body)
 
-          var li1 = (json_in.id != null ? json_in.id.name : this.gid.newNodeId("L"))
+          var li1 = null
+          if(json_in.id != null) {
+            // get user's defined name
+            li1 = this.gid.useNodeId(json_in.id.name)
+          } else {
+            // generate an automatic node name
+            li1 = this.gid.newNodeId("L")
+          }
 
           var envelopeLambdaDict = {
             "type": "L",
@@ -185,7 +193,7 @@ function LambdaReader(gid) {
           //retStmtDict = retStmtDict[0] // take 1st
 
           //retStmtLambdaStr = this.jsjson2lambda(retStmtDict, vardict3)
-          //envelopeLambdaStr = this.jsjson2lambda(json_in, vardict3, paramname)
+          //envelopeLambdaStr = this.jsjson2lambda(json_in, vardict3, definedName)
 
           //var li1 = (json_in.id != null ? json_in.id.name : this.gid.newNodeId("L"))
 
@@ -198,7 +206,7 @@ function LambdaReader(gid) {
           var o11 = {
             "type": "L",
             "id": li1,
-            "l": paramname,
+            "l": definedName,
             "m": retStmtLambdaStr,
             "r": envelopeLambdaStr,
             "from": json_in.type
@@ -211,12 +219,33 @@ function LambdaReader(gid) {
           return o2a1a
 
         case "ArrowFunctionExpression":
-          var bodyDict = this.jsjson2dict_nodes(json_in.body, vardict1, json_in.params[0].name)
+          var bodyDict = this.jsjson2dict_nodes(json_in.body, vardict1)
+          // FIXME in below, should I also mimic the above in terms of the definedName parameter?
           var bodyStr = this.jsjson2lambda(json_in.body, vardict1, json_in.params[0].name)
           var envStr = this.jsjson2lambda(json_in, vardict1, json_in.params[0].name)
-          var li2 = (json_in.id != null ? json_in.id.name : this.gid.newNodeId("L"))
 
-          //var o12 = li2 + " " + '[label="<lo> ' + paramname + ' |{<mi> '+ o2b2 + '|' + li2 + '} | <ro> λ' + paramname + '.'+ o2b2 + '"];'
+          // Figure out the node names
+          // First, check if there is a variable name definedName
+          // Second, try to use the function signature
+          // Third, fall back to automatic generation of node name
+          // console.log("arrow definedName", definedName, "arrow function", json_in)
+          // json_id is always null for arrow function expression, so resort to a passed definedName
+          // var li2 = (json_in.id != null ? json_in.id.name : this.gid.newNodeId("L"))
+          var li2 = null
+          if(definedName != undefined) {
+            // use defined name
+            li2 = this.gid.useNodeId(definedName)
+          } else {
+            if(json_in.params[0].name != undefined) {
+              // use signature of lambda function
+              li2 = this.gid.useNodeId("L_"+json_in.params[0].name)
+            } else {
+              // generate an automatic node name
+              li2 = this.gid.newNodeId("L")
+            }
+          }
+
+          //var o12 = li2 + " " + '[label="<lo> ' + definedName + ' |{<mi> '+ o2b2 + '|' + li2 + '} | <ro> λ' + definedName + '.'+ o2b2 + '"];'
           var o12 = {
             "type": "L",
             "id": li2,
@@ -279,8 +308,9 @@ function LambdaReader(gid) {
           //return [json_in.declarations[0].id.name]
           //return []
 
-          var o1 = this.jsjson2dict_nodes(json_in.declarations[0].init, vardict1)
-          //console.log("variable dec", json_in, o1)
+          // pass the variable name as the definedName
+          var o1 = this.jsjson2dict_nodes(json_in.declarations[0].init, vardict1, json_in.declarations[0].id.name)
+          // console.log("variable dec", json_in, o1)
           /*
           var o2 = [{
             "type": "var",

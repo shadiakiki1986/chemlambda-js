@@ -308,27 +308,32 @@
               Syntax for re-writes
 
               <pre>
-                beta node1 node2
-                beta node1 node2 # comments after a hash character
-                dist (all|node_in) node_center (all|node_l) (all|node_r)
-                # dist node4 # comment out a line
-                ...
+beta node1 node2
+beta node1 node2 # comments after a hash character
+dist (all|node_in) node_center (all|node_l) (all|node_r)
+# dist node4 # comment out a line
+...
+</pre>
 
-                For beta:
-                - node1 should be of type "L", and node2 of type "A"
-                - node1 and node2 should be directly connected
+              For beta:
+              <ul>
+              <li>node1 should be of type "L", and node2 of type "A"</li>
+              <li>node1 and node2 should be directly connected</li>
+              <li>For the beta re-write to be a lambda-calculus beta reduction, the `L` should be connected to the left port of the `A`</li>
+              </ul>
 
-                For dist:
-                - in the below, `node_center` denotes the 2nd argument in the example above (the same follows for other exemplified nodes)
-                - `node_l` denotes nodes connected to the "left output" of `node_center`
-                - `node_r` denotes nodes connected to the "right output" of `node_center`
-                - `node_in` denotes nodes connected to the "input" of `node_center`
-                - All nodes should be of type A or L
-                - at least one of `node_center`'s ports should be branching (fan in or fan out)
-                - if all of `node_center`'s possibly-multiple inputs is desired to have the `dist` applied, use the keyword "all" before `node_center`
-                - if only one of `node_center`'s possibly-multiple inputs is desired to have the `dist` applied, include its ID before `node_center`
-                - the same applies to `node_center`'s possibly-multiple branches on one of its outputs
-              </pre>
+              For dist:
+              <ul>
+              <li>in the below, `node_center` denotes the 2nd argument in the example above (the same follows for other exemplified nodes)</li>
+              <li>`node_l` denotes nodes connected to the "left output" of `node_center`</li>
+              <li>`node_r` denotes nodes connected to the "right output" of `node_center`</li>
+              <li>`node_in` denotes nodes connected to the "input" of `node_center`</li>
+              <li>All nodes should be of type A or L</li>
+              <li>at least one of `node_center`'s ports should be branching (fan in or fan out)</li>
+              <li>if all of `node_center`'s possibly-multiple inputs is desired to have the `dist` applied, use the keyword "all" before `node_center`</li>
+              <li>if only one of `node_center`'s possibly-multiple inputs is desired to have the `dist` applied, include its ID before `node_center`</li>
+              <li>the same applies to `node_center`'s possibly-multiple branches on one of its outputs</li>
+              </ul>
 
             </div>
             <div class="modal-footer">

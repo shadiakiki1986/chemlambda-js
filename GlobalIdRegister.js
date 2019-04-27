@@ -24,6 +24,18 @@ function GlobalIdRegister() {
       return newId
     }
 
+    this.useNodeId = function(newId) {
+      if(this.globalIdRegister.indexOf(newId) != -1) {
+        throw "Passed node ID is already in use: " + newId
+      }
+
+      // append to global register
+      this.globalIdRegister = this.globalIdRegister.concat([newId])
+
+      //return
+      return newId
+    }
+
 
 
     return this

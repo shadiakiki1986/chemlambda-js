@@ -42,7 +42,7 @@ var jsExamplesOpt = [
 
   return _
 }`,
-      "rewrites": `beta L0 A0`
+      "rewrites": `beta ID A0`
   },
 
 
@@ -55,7 +55,7 @@ var whatever = fw => xw
 var actual = constant(whatever)
 return _
 }`,
-      "rewrites": `beta L0 A0`
+      "rewrites": `beta constant A0`
   },
 
 
@@ -68,9 +68,9 @@ return _
   var expected_one = fe => xe => fe(xe) // for comparison
   return _
 }`,
-      "rewrites": `beta L2 A3
-beta L4 A0
-beta L3 A1`
+      "rewrites": `beta SUCC A3
+beta zero A0
+beta L_x0 A1`
   },
 
 
@@ -83,9 +83,9 @@ beta L3 A1`
   var expected_two = fe => xe => fe(fe(xe)) // for comparison
   return _
 }`,
-      "rewrites": `beta L2 A4
-beta L4 A3
-beta L3 A0`
+      "rewrites": `beta SUCC A4
+beta zero A3
+beta L_x0 A0`
   },
 
 
@@ -94,10 +94,10 @@ beta L3 A0`
    "javascript": `_ => {
   // PRED := λn.λf.λx.n (λg.λh.h (g f)) (λu.x) (λu.u)
   var PRED = n => f1 => x1 => {
-    var L4 = u1 => x1
-    var L5 = u2 => u2
-    var L6 = g => h => h(g(f1))
-    return ((n(L6))(L4))(L5)
+    var v4 = u1 => x1
+    var v5 = u2 => u2
+    var v6 = g => h => h(g(f1))
+    return ((n(v6))(v4))(v5)
   }
 
   // one := λf.λx.(f x)
@@ -109,35 +109,37 @@ beta L3 A0`
 
   return _
 }`,
-      "rewrites": `beta L3 A0
-beta L6 A6
-beta L2 A1
-beta L8 A2
-beta L7 A5
-beta L5 A3
-beta L4 A4
+      "rewrites": `beta v6 A0
+beta PRED A6
+beta L_h A1
+beta one A2
 
-# the below re-writes get the result "flipped"
-#beta L2 A1
-#beta L6 A2
-#beta L3 A6
-#beta L8 A0
-#beta L0 A3
-#beta L7 A5
-#beta L1 A4`
+beta L_x2 A5 # note that f2 is on A's right port, not left port, otherwise it would be f1
+
+beta L_f1 A3
+beta L_x1 A4
+
+# the below re-writes get a similar result, but with FROUT on the left port instead of right port as above
+#beta L_h A1
+#beta PRED A2
+#beta v6 A6
+#beta one A0
+#beta v4 A3
+#beta L_x2 A5 # note this is on right port, not left as others
+#beta v5 A4`
   },
 
 
 
-  {"title":"predecessor(two) == one",
-   "description": "PRED(two) == one",
+  {"title":"predecessor(two) == one ?",
+   "description": "PRED(two) == one (needs fixing?)",
    "javascript": `_ => {
   // PRED := λn.λf.λx.n (λg.λh.h (g f)) (λu.x) (λu.u)
   var PRED = n => f1 => x1 => {
-    var L4 = u1 => x1
-    var L5 = u2 => u2
-    var L6 = g => h => h(g(f1))
-    return ((n(L6))(L4))(L5)
+    var v4 = u1 => x1
+    var v5 = u2 => u2
+    var v6 = g => h => h(g(f1))
+    return ((n(v6))(v4))(v5)
   }
 
   // one := λf.λx.(f x)
@@ -150,20 +152,19 @@ beta L4 A4
   return _
 }`,
       "rewrites": `# the following re-writes result in an "almost one"
-# since the arrow from the L to the A is on its right, but should be on its left
-beta L6 A8 # PRED(two) -> n
-# rule: beta on L connected to A:left
-beta L8 A2 # n(L6)
-beta L7 A3
-beta L3 A6
-beta L2 A4
-beta L1 A1
-beta L0 A5`
+# since the result's arrow from the L to the A is on its right, but should be on its left
+beta PRED A8 # PRED(two) -> n
+beta two A2
+beta L_x2 A3
+beta v6 A6
+beta L_h A4
+beta v5 A1
+beta v4 A5 # this L is on A right (not left)`
   },
 
 
-  {"title":"predecessor(three)",
-   "description": "PRED(three)",
+  {"title":"predecessor(three)==two?",
+   "description": "PRED(three)==two .. rewrites are still incomplete",
    "javascript": `_ => {
   // PRED := λn.λf.λx.n (λg.λh.h (g f)) (λu.x) (λu.u)
   var PRED = n => f1 => x1 => {
@@ -181,15 +182,9 @@ beta L0 A5`
 
   return _
 }`,
-      "rewrites": `beta L6 A8
-beta L8 A2
-
-# either perform beta, or dist
-# beta L7 A3
-# dist all L3 all all
-# dist L2  L3 all all
-# dist L2  L3 A0  all
-# dist L2  L3 A0  A7`
+      "rewrites": `# incomplete
+beta PRED A8
+beta three A2`
   },
 
 
@@ -219,6 +214,24 @@ beta L8 A2
   }
   var two = f2 => x2 => f2(f2(x2))
   var ack_0_0 = ack(zero, zero)
+
+  return _
+}`,
+      "rewrites": ``
+  },
+
+
+  {"title":"2+2 + 2+2 + 3+3",
+   "description": "https://en.wikipedia.org/wiki/Graph_reduction#Motivation",
+   "javascript": `_ => {
+  var SUCC = n_succ => f_succ => x_succ => f_succ(n_succ(f_succ)(x_succ))
+  var PLUS = m_p => n_p => m_p(SUCC(n_p))
+  var two = f2 => x2 => f2(f2(x2))
+  var three = f3 => x3 => f3(f3(f3(x3)))
+  var four = PLUS(two, two)
+  var eight = PLUS(four, four)
+  var six = PLUS(three, three)
+  var fourteen = PLUS(eight, six)
 
   return _
 }`,
