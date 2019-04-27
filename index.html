@@ -536,6 +536,22 @@ dist (all|node_in) node_center (all|node_l) (all|node_r)
               </button>
             </small>
 
+            <div v-if="rwVal.length > 0">
+              <input type="range" id="cowbell"
+                     min="0" :max="rwVal.length"  step="1" v-model="rwRange"
+                     v-on:change="pushRw()"
+                     >
+              <label for="cowbell">Step {{rwRange}}/{{rwVal.length}}</label>
+
+              <span v-if="rwRange == 0">
+                (initial)
+              </span>
+              <span v-if="rwRange > 0">
+                ({{array2txt(rwVal[rwRange-1])}})
+              </span>
+
+            </div>
+
             <div v-html="graph2Svg.outerHTML" v-if="!error2Msg && graphManager=='vizjs'">
             </div>
 

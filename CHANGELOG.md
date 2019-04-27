@@ -9,6 +9,7 @@ Version 0.1.3 (2019-04-27)
 * enhancement: clarified in main page, section for re-write syntax, that L should be in left of A for lambda-calculus style beta reduction
 * enhancement: rename `paramname` to `definedName`
 * feature: use lambda function's signature as node name of ArrowFunctionExpression
+* feature: add slider controller for "after re-writes" to go back and forth one re-write at a time
 
 
 Version 0.1.2 (2019-04-26)

@@ -345,6 +345,7 @@ function GraphRewriter(gid) {
 
 
     this.array2txt = function(rwVal) {
+        if(rwVal == undefined) return ""
 
         switch(rwVal.type) {
           case "beta":

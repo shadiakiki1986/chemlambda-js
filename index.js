@@ -280,7 +280,9 @@ var app = new Vue({
     "suggestedRwInProgress": false,
     //"dict2FromDict1Callback": false
     "suggestedRwHistory": [],
-    "graphManager": "vizjs"
+    "graphManager": "vizjs",
+
+    "rwRange": 0
 
   },
 
@@ -350,7 +352,8 @@ var app = new Vue({
         this.dict1Auto = utils.clone(this.dot1Manual) // FIXME shouldnt set dot to dict
       }
 
-      this.rwAuto = utils.clone(this.rwVal)
+      // subset as per the range controller
+      this.rwAuto = utils.clone(this.rwVal.slice(0, this.rwRange))
 
       // final step
       try {
@@ -457,6 +460,10 @@ var app = new Vue({
       this.graph1Visible = false
 
 
+    },
+
+    array2txt: function(rwVal) {
+      return gr.array2txt(rwVal)
     }
 
   },
