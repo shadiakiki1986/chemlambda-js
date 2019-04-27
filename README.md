@@ -2,17 +2,13 @@
 
 [![Build Status](https://travis-ci.org/shadiakiki1986/chemlambda-js.svg?branch=master)](https://travis-ci.org/shadiakiki1986/chemlambda-js)
 
-Artificial chemistry based on graph rewrites in the browser
+Artificial chemistry based on graph rewrites in the browser.
 
-A javascript implementation of [chemlabda-gui](https://github.com/chorasimilarity/chemlambda-gui/blob/gh-pages/dynamic/README.md)
+Can serve as a lambda calculus interpreter.
 
-It is WIP. Check [CHANGELOG](CHANGELOG.md) for more details.
+It is a javascript implementation of [chemlabda-gui](https://github.com/chorasimilarity/chemlambda-gui/blob/gh-pages/dynamic/README.md). Please check there for more details on the original work of the author.
 
-Please check the original repository for more details on the work of the author.
-
-It is licensed similarly to the original repository, `chemlambda-gui`.
-
-Related reopsitory: [chemlmabda-awk](https://github.com/shadiakiki1986/chemlambda-awk/)
+This project is WIP. Check [CHANGELOG](CHANGELOG.md) for more details.
 
 
 ## Usage
@@ -84,4 +80,5 @@ Similar to [chemlabda-gui](https://github.com/chorasimilarity/chemlambda-gui/)
 ## Related
 
 - chorasimilarity's [chemlabda-gui](https://github.com/chorasimilarity/chemlambda-gui/)
+    - my [chemlmabda-awk](https://github.com/shadiakiki1986/chemlambda-awk/): a small clean-up of `chemlambda-gui`
 - jacksongl's [lambda calculus interpreter](https://jacksongl.github.io/files/demo/lambda/index.htm#firstPage) ([src](https://github.com/JacksonGL/jacksongl.github.io/tree/master/files/demo/lambda))
