@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/shadiakiki1986/chemlambda-js.svg?branch=master)](https://travis-ci.org/shadiakiki1986/chemlambda-js)
 
-Artificial chemistry based on graph rewrites in the browser.
+Artificial chemistry based on graph rewrites in the browser. Check live deployment at http://shadiakiki1986.github.io/chemlambda-js/
 
 Can serve as a lambda calculus interpreter.
 
@@ -15,7 +15,16 @@ This project is WIP. Check [CHANGELOG](CHANGELOG.md) for more details.
 
 In the browser:
 
-Open `index.html` in a browser (or hosted version [here](http://www.teamshadi.net/chemlambda-js/)) and follow the instructions on the page
+1. Open `index.html` in a browser (or hosted version at http://shadiakiki1986.github.io/chemlambda-js/).
+2. Choose one of the lambda calculus examples in the top right dropdown
+3. Click `Load`
+4. Read the title, description, and javascript implementation of the loaded example in the left pane
+5. Choose the suitable visualization options
+6. Click `Run`
+7. Read the displayed graph
+8. Add re-writes in the text box in the lower left pane, or select suggested re-writes in the top-middle dropdown
+9. Click `Run` again
+10. You can also choose to execute `Randomly selected re-writes` and roll out 25 such choices
 
 
 In nodejs:
@@ -24,7 +33,7 @@ First, follow the installation instructions in `Testing` below, then run
 
 ```
 var lt = require('LambdaTerms')
-console.log(lt.lc_true)
+console.log(lt.lc_true) // this is an example "true" from lambda calculus implemented in javascript
 
 var lr = require('LambdaReader')
 lr.... # API to be documented here later
@@ -33,7 +42,9 @@ lr.... # API to be documented here later
 
 ## Testing
 
-Install dependencies
+The implemented unit tests can be run via nodejs:
+
+1. Install dependencies
 
 ```
 # check ndoejs
@@ -65,7 +76,7 @@ Running node v11.14.0 (npm v6.7.0)
 > rm /home/ubuntu/npm-debug.log.*
 ```
 
-Launch tests
+2. Launch tests
 
 ```
 > ./node_modules/mocha/bin/mocha
