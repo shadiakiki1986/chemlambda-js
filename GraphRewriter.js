@@ -49,7 +49,9 @@ function GraphRewriter(gid) {
               "L_in": Object.keys(edges_dict).filter(k => edges_dict[k].to.id==rwi.n1),
               "A_out": Object.keys(edges_dict).filter(k => edges_dict[k].from.id==rwi.n2),
               "A_in_notL": Object.keys(edges_dict).filter(k => (edges_dict[k].to.id==n2.id)&&(edges_dict[k].from.id!=n1.id)),
-              "L_out_notA": Object.keys(edges_dict).filter(k => (edges_dict[k].from.id==n1.id)&&(edges_dict[k].to.id!=n2.id))
+              "L_out_notA": Object.keys(edges_dict).filter(k => (edges_dict[k].from.id==n1.id)&&(edges_dict[k].to.id!=n2.id)),
+              // the below edge is just so that it gets deleted later
+              "L_to_A": Object.keys(edges_dict).filter(k => (edges_dict[k].from.id==n1.id)&&(edges_dict[k].to.id==n2.id))
             }
 
             // Add edges
@@ -148,7 +150,11 @@ function GraphRewriter(gid) {
               })
             })
 
-            return edges_dict
+            // delete nodes in subject
+            lambda_dict.nodes = lambda_dict.nodes.filter(ni => ni.id!=n1.id && ni.id!=n2.id)
+
+            // return
+            return {"edges_dict": edges_dict, "lambda_dict": lambda_dict}
     }
 
 
@@ -314,7 +320,9 @@ function GraphRewriter(gid) {
         // check re-write type and apply the corresponding actions
         switch(rwi.type) {
           case "beta":
-            edges_dict = this.apply_beta(lambda_dict, edges_dict, rwi)
+            o = this.apply_beta(lambda_dict, edges_dict, rwi)
+            edges_dict = o.edges_dict
+            lambda_dict = o.lambda_dict
             break;
 
           case "dist":

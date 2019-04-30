@@ -1,3 +1,12 @@
+Version 0.1.4 (2019-04-30)
+
+* feature: upon a beta re-write, delete the L/A nodes in subject
+  * this is justified by https://en.wikipedia.org/wiki/DNA_computing#DNAzymes
+    * the section "DNAzymes" states
+      * "Because of this, these reactions take place in a device such as a continuous stirred-tank reactor, where old product is removed and new molecules added"
+
+
+
 Version 0.1.3 (2019-04-27)
 
 * feature: use variable names and function names defined by user in lambda node IDs instead of automatically generating them
