@@ -5,6 +5,9 @@ Version 0.1.4 (2019-04-30)
     * the section "DNAzymes" states
       * "Because of this, these reactions take place in a device such as a continuous stirred-tank reactor, where old product is removed and new molecules added"
 * bugfix: reset the rwRange variable between examples
+* feature: stop gathering variables for expansion ... will use variable names instead
+* feature: replace expanded strings with variable names when possible
+* feature: trick for L of using id instead of r in order to capture edge by variable defined name
 
 
 Version 0.1.3 (2019-04-27)

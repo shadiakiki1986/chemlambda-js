@@ -31,14 +31,44 @@ var jsExamplesOpt = [
   },
 
 
-  {"title":"identity(zero)==zero",
-   "description": "Re-writes converting zero to zero via identity",
+  {"title":"identity(zero)==zero (visual)",
+   "description": "Re-writes converting zero to zero via identity .. to be checked visually",
    "javascript": `_ => {
 
   var ID = xs => xs
   var expected = fe => xe => xe
   var zero = fa => xa => xa
   var actual = ID(zero)
+
+  return _
+}`,
+      "rewrites": `beta ID A0`
+  },
+
+
+  {"title":"identity(zero)==zero (calculated)",
+   "description": "Re-writes converting zero to zero via identity ... result is boolean ... TBD",
+   "javascript": `_ => {
+
+  var ID = xs => xs
+  var expected = fe => xe => xe
+  var zero = fa => xa => xa
+  var actual = ID(zero)
+
+
+  var TRUE = xT => yT => xT
+  var FALSE = xF => yF => yF
+  var ISZERO = n_is0 => n_is0 (x_is0 => FALSE) (TRUE)
+  var PRED = n_pred => f_pred => x_pred => {
+    var L4_pred = u1_pred => x_pred
+    var L5_pred = u2_pred => u2_pred
+    var L6_pred = g_pred => h_pred => h_pred(g_pred(f_pred))
+    return ((n_pred(L6_pred))(L4_pred))(L5_pred)
+  }
+  var SUB = m_sub => n_sub => n_sub(PRED(m_sub))
+  var LEQ = m_leq => n_leq => ISZERO (SUB(m_leq, n_leq))
+  var AND = p_and => q_and => p_and(q_and)(p_and)
+var result = AND(LEQ(actual, zero), LEQ(zero, actual))
 
   return _
 }`,

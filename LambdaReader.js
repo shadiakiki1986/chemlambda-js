@@ -25,6 +25,11 @@ function LambdaReader(gid) {
     // utility function to gather key-value pairs of "variables"
     this.var2dict = function(json_in, vardict1) {
 
+      // 2019-04-30 Stop gathering variable definitions
+      //            and instead use the variable names for creating the edges
+      //            Check the special treatment of L nodes in jsjson2dict_edges
+      return vardict1
+
       // prepare variables dict
       var vardict2 = json_in.body.filter(b => (b.type == "VariableDeclaration"))
       vardict2 = vardict2.map(b => {
@@ -67,6 +72,10 @@ function LambdaReader(gid) {
     // https://raw.githubusercontent.com/pegjs/pegjs/master/examples/javascript.pegjs
     // https://cdn.jsdelivr.net/gh/pegjs/pegjs/examples/javascript.pegjs
     this.jsjson2lambda = function(json_in, vardict1, definedName) {
+      // vardict1: This is a dict with keys being the names of variables and values being the definition of each variable
+      //           The purpose is that when a variable name appears inside of an expression, it can be identified here
+      //            and replaced as needed
+
       var out = ""
       //var i = json_in // .body[0]
       //console.log("convert", json_in, vardict1)
@@ -81,6 +90,7 @@ function LambdaReader(gid) {
 
         case "BlockStatement":
           var vardict3 = this.var2dict(json_in, vardict1)
+
           //console.log("vardict3", vardict3)
           var retStmtDict = json_in.body.filter(b => (b.type == "ReturnStatement"))
           if (retStmtDict.length == 0) throw "Missing return statement from block"
@@ -119,6 +129,39 @@ function LambdaReader(gid) {
     }
 
 
+    // utility function to replace expanded lambda expressions with variable names
+    function lambdastr2varname(arg_rd, arg_rs) {
+      if(arg_rd.length == 0) return arg_rs
+
+      var prevNode = arg_rd[arg_rd.length - 1]
+      //console.log("lambdastr2varname", arg_rs, prevNode)
+      switch(prevNode.type) {
+        case "L":
+          // for .. of https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/for...of
+          for(const k1 of ['l','r']) {
+            //console.log("k1", k1, prevNode[k1], arg_rs)
+            if(prevNode[k1]==arg_rs) {
+              return prevNode.id
+            }
+          }
+          break // switch
+        case "A":
+        /*
+          var k1 = 'm'
+          if(prevNode[k1]==arg_rs) {
+            return prevNode.id
+          }
+          break // switch
+          */
+          return arg_rs
+        default:
+          throw "Unsupported type " + prevNode.type
+      }
+
+      return arg_rs
+
+    }
+
 
 
 
@@ -148,10 +191,10 @@ function LambdaReader(gid) {
         case "FunctionDeclaration": // esprima
           // return this.jsjson2dict_nodes(json_in.body, vardict1, json_in.params[0].name)
 
-          var bodyLambdaDict = this.jsjson2dict_nodes(json_in.body, vardict1, json_in.params[0].name)
+          var bodyDict = this.jsjson2dict_nodes(json_in.body, vardict1, json_in.params[0].name)
           // result = result[0] // keeping it as array below for compliance
-          var envelopeLambdaStr = this.jsjson2lambda(json_in) // , vardict3, definedName)
-          var bodyLambdaStr = this.jsjson2lambda(json_in.body)
+          var envStr = this.jsjson2lambda(json_in) // , vardict3, definedName)
+          var bodyStr = this.jsjson2lambda(json_in.body)
 
           var li1 = null
           if(json_in.id != null) {
@@ -162,16 +205,19 @@ function LambdaReader(gid) {
             li1 = this.gid.newNodeId("L")
           }
 
+          // check if bodyStr (going to m) can be replaced by a node ID
+          bodyStr = lambdastr2varname(bodyDict, bodyStr)
+
           var envelopeLambdaDict = {
             "type": "L",
             "id": li1,
             "l": json_in.params[0].name,
-            "m": bodyLambdaStr,
-            "r": envelopeLambdaStr,
+            "m": bodyStr,
+            "r": envStr,
             "from": json_in.type
           }
 
-          return bodyLambdaDict.concat([envelopeLambdaDict])
+          return bodyDict.concat([envelopeLambdaDict])
 
         case "BlockStatement":
           //o2a1 = json_in.body.filter(b => (b.type == "VariableDeclaration")).map(b => this.jsjson2dict_nodes(b)).reduce((a, b) => a.concat(b), [])
@@ -245,6 +291,9 @@ function LambdaReader(gid) {
             }
           }
 
+          // check if bodyStr (going to m) can be replaced by a node ID
+          bodyStr = lambdastr2varname(bodyDict, bodyStr)
+
           //var o12 = li2 + " " + '[label="<lo> ' + definedName + ' |{<mi> '+ o2b2 + '|' + li2 + '} | <ro> λ' + definedName + '.'+ o2b2 + '"];'
           var o12 = {
             "type": "L",
@@ -270,14 +319,13 @@ function LambdaReader(gid) {
           //return [{"type": "Identifier", "k": json_in.name}]
 
         case "CallExpression":
-          // var o1a = (  json_in.callee.type=="Identifier" ? json_in.callee.name : this.jsjson2dict_nodes(json_in.callee, vardict1)  )
-          var o00 = this.jsjson2dict_nodes(json_in.callee, vardict1)
-          var o1a = this.jsjson2lambda(json_in, vardict1)
-          var o1b = this.jsjson2lambda(json_in.callee, vardict1)
+          // var o1_m = (  json_in.callee.type=="Identifier" ? json_in.callee.name : this.jsjson2dict_nodes(json_in.callee, vardict1)  )
+          var o1_ld = this.jsjson2dict_nodes(json_in.callee, vardict1)
+          var o1_ls = this.jsjson2lambda(json_in.callee, vardict1)
 
           // replace variable name with value
-          var arg_l = this.jsjson2lambda(json_in.arguments[0], vardict1)
-          var arg_d = this.jsjson2dict_nodes(json_in.arguments[0], vardict1)
+          var arg_rs = this.jsjson2lambda(json_in.arguments[0], vardict1)
+          var arg_rd = this.jsjson2dict_nodes(json_in.arguments[0], vardict1)
 
           // Even though this is the only place for variable replacement,
           // I'm commenting it out since it doesn't seem to fit
@@ -289,12 +337,28 @@ function LambdaReader(gid) {
 
           var nodeId = this.gid.newNodeId("A")
 
-          return o00.concat(arg_d).concat([{
+          // Set the middle node
+          // Use the variable declared name if possible
+          var o1_ms = null
+          if(definedName != undefined) {
+            // use defined name
+            o1_ms = definedName
+          } else {
+            o1_ms = this.jsjson2lambda(json_in, vardict1)
+          }
+
+          // check if arg_rs can be replaced by a node ID
+          arg_rs = lambdastr2varname(arg_rd, arg_rs)
+          // same for o1_ls
+          o1_ls = lambdastr2varname(o1_ld, o1_ls)
+
+          // concatenate and return
+          return o1_ld.concat(arg_rd).concat([{
             "type": "A",
             "id": nodeId,
-            "r": arg_l,
-            "m": o1a,
-            "l": o1b,
+            "r": arg_rs,
+            "m": o1_ms,
+            "l": o1_ls,
             "from": json_in.type
           }])
 
@@ -341,7 +405,10 @@ function LambdaReader(gid) {
       dict_nodes_copy.forEach(row => {
       	['l', 'm', 'r'].forEach(k1 => {
 
-    			var k2 = row[k1]
+          // get the value of the k1 key, except in case of L, use the ID
+          // This will facilitate later matching with shorter "unexpanded" values
+          // Check the usage of "vardict1" in the jsjson2lambda
+    			var k2 = (row.type=='L' && k1=='r') ? row.id : row[k1]
           if (!(k2 in gather)) gather[k2] = {'from': null, 'to': []}
 
     			// build node string labels
