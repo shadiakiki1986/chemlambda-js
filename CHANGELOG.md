@@ -4,7 +4,7 @@ Version 0.1.4 (2019-04-30)
   * this is justified by https://en.wikipedia.org/wiki/DNA_computing#DNAzymes
     * the section "DNAzymes" states
       * "Because of this, these reactions take place in a device such as a continuous stirred-tank reactor, where old product is removed and new molecules added"
-
+* bugfix: reset the rwRange variable between examples
 
 
 Version 0.1.3 (2019-04-27)

@@ -293,6 +293,7 @@ var app = new Vue({
       this.inJavascript=""
       this.dot1From="lambda"
       this.rwTxt = ""
+      this.rwRange = 0
     },
 
     resetOutput: function() {
