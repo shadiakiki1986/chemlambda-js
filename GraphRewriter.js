@@ -368,6 +368,8 @@ function GraphRewriter(gid) {
 
 
     this.txt2array = function(rwTxt) {
+      // takes string with one re-write comand per row (separated by new line)
+      // and spits out an array of each re-write being a dict
       var rwVal = rwTxt.split("\n").map(l => l.trim()).filter(l => !!l)
 
       rwVal = rwVal.map(l => {

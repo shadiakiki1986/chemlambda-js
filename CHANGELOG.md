@@ -1,3 +1,19 @@
+Version 0.1.5 (2019-05-01)
+
+* feature: sliders for initial re-writes as well as suggested re-writes
+  * note that these re-writes are chained, i.e. the suggested come after the initial
+  * so when the initial slider is moved, the suggested re-writes might no longer be valid
+  * This is why they are reset upon a change of the initial re-writes slider
+* enhancement: cleaning some unnecessary commented tags in the html head of index.html
+* feature: add `resetIntermezzo()` dedicated to the suggested re-writes
+* enhancement: refactor some variable names for distinguishing clearly between pertaining to initial or to suggested re-writes
+* feature: suggested re-writes array is now an array of dict instead of array of txt
+* enhancement: some shuffling of controls in UI
+* bugfix: `predecessor(3)` was still using `L4` for variable name (which confuses the user with the automatically generated node name `L4` (which btw is no longer available since the integration of the `L_parameter` notation))
+* feature: `rwAuto{Initial,Suggested}` are both `computed` fields in vue.js now
+* feature: filtering the suggested re-writes for `beta reduction` now filters further for edges between L.right and A.left only
+
+
 Version 0.1.4 (2019-04-30)
 
 * feature: upon a beta re-write, delete the L/A nodes in subject

@@ -6,29 +6,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
     <title>chemlambda-js</title>
 
-    <!-- getbootstrap.com Latest compiled and minified CSS -->
-    <!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous"> -->
-
-    <!-- including integrity
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-    -->
-
-    <!-- not compatible with 4.3.1, but with 3.3.7 -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" crossorigin="anonymous">
-
-   <!-- including integrity
-    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
-    -->
-
-    <!-- without integrity attribute -->
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" crossorigin="anonymous"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" crossorigin="anonymous"></script>
-
-    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/esprima/2.7.3/esprima.min.js"></script> -->
     <script src="https://unpkg.com/esprima@~4.0/dist/esprima.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/viz.js/2.1.2/viz.js"></script>
 
@@ -349,7 +330,7 @@ dist (all|node_in) node_center (all|node_l) (all|node_r)
           <form>
 
             <div class="form-group">
-              <button type="button" class="form-control btn btn-outline-primary btn-block" @click="pushRw()">
+              <button type="button" class="form-control btn btn-outline-primary btn-block" @click="resetIntermezzo(); pushRw()">
                 Run
                 &nbsp;
                 <span class="badge badge-primary">&gt;</span>
@@ -429,13 +410,13 @@ dist (all|node_in) node_center (all|node_l) (all|node_r)
                 </button>
               </label>
 
-              <textarea class="form-control" id="exampleFormControlTextarea4" rows="3" v-model="rwTxt"></textarea>
+              <textarea class="form-control" id="exampleFormControlTextarea4" rows="3" v-model="rwTxtInitial"></textarea>
 
               Suggested re-write history
 
               <ol>
-                <li v-if="suggestedRwHistory.length == 0">None</li>
-                <li v-for="rwi in suggestedRwHistory">{{rwi}}</li>
+                <li v-if="rwValSuggested.length == 0">None</li>
+                <li v-for="rwi in rwValSuggested">{{array2txt(rwi)}}</li>
               </ol>
             </div>
 
@@ -446,49 +427,105 @@ dist (all|node_in) node_center (all|node_l) (all|node_r)
 
 
         <!-- column 2 for graph before/after re-writes -->
-        <div class="col-8">
+        <div class="col-8" v-if="!!dict1Auto || !!dict2Auto">
 
-          <div>
-            <form class="form-inline">
-              Suggested re-writes:
-              <span v-if="suggestedRwAll.length == 0">None</span>
-              <span v-if="suggestedRwAll.length  > 0">
-                <select v-model="suggestedRwSelected" :disabled="suggestedRwInProgress">
-                  <option v-for="item in suggestedRwAll" v-bind:value="item">{{item}}</option>
-                </select>
-              </span>, &nbsp;
+          <div v-if="rwValInitial.length > 0 && !!dot2Auto" class="row">
+            <div class="col-2">
+              Initial re-writes
+            </div>
+            <div class="col-10">
+              <input type="range" id="cowbell1"
+                     min="0" :max="rwValInitial.length"  step="1" v-model="rwRangeInitial"
+                     v-on:change="resetIntermezzo(); pushRw()"
+                     :disabled="!rwValInitial.length"
+                     >
+              <label for="cowbell1">Step {{rwRangeInitial}}/{{rwValInitial.length}}</label>
+              (
+              <span v-if="rwRangeInitial == 0">initial</span>
+              <span v-if="rwRangeInitial > 0">{{array2txt(rwValInitial[rwRangeInitial-1])}}</span>
+              -&gt;
+              <span v-if="rwRangeInitial < rwValInitial.length">{{array2txt(rwValInitial[rwRangeInitial  ])}}</span>
+              <span v-if="rwRangeInitial == rwValInitial.length">end</span>
+              )
+            </div>
+          </div>
 
-              Choose
-              <select v-model="suggestedRwMethod" :disabled="suggestedRwAll.length==0 || suggestedRwInProgress">
-                <option value="selected">Selected</option>
-                <option value="random">Random</option>
-              </select>
 
-              <button type="button" @click="suggestedRwAppend(false)" class="btn btn-sm btn-info" :disabled="(!suggestedRwSelected && suggestedRwMethod=='selected') || suggestedRwAll.length==0 || suggestedRwInProgress">
-                Step once
-              </button>
+          <div class="row">
+            <div class="col-2">
+              Suggested re-writes
+            </div>
 
-              &nbsp;
+            <div class="col-10">
+              <div>
+                <form class="form-inline row">
+                  <div>
+                    <label for="suggestedRwRestriction">
+                      Filter
+                    </label>
+                    <select class="form-control mr-sm-2" v-model="suggestedRwRestriction" id="suggestedRwRestriction">
+                      <option value="beta reduction">Beta reduction</option>
+                      <option value="all">All</option>
+                    </select>
+                  </div>
 
-              <button type="button" @click="suggestedRwAppend(true)" class="btn btn-sm btn-info" :disabled="suggestedRwMethod!='random' || suggestedRwAll.length==0 || suggestedRwInProgress">
-                Roll out {{suggestedRwMax}}
-              </button>
+                  <div>
+                    <label for="suggestedRwMethod">Choose</label>
+                    <select v-model="suggestedRwMethod" :disabled="suggestedRwAll.length==0 || suggestedRwInProgress" id="suggestedRwMethod">
+                      <option value="selected">Selected</option>
+                      <option value="random">Random</option>
+                    </select>
+                  </div>
 
-              &nbsp;
+                  <div>
+                    <label for="suggestedRwSelected">
+                    List
+                    &nbsp;
+                    <span class="badge badge-secondary">{{suggestedRwAll.length}}</span>
+                    </label>
+                    <select v-model="suggestedRwSelected" :disabled="suggestedRwInProgress || suggestedRwAll.length==0" id="suggestedRwSelected">
+                      <option v-for="item in suggestedRwAll" v-bind:value="item">{{item}}</option>
+                    </select>
+                  </div>
 
-              <div v-if="suggestedRwStep > 0">
-                Step {{suggestedRwStep}}
+                  <div>
+                    <button type="button" @click="suggestedRwAppend(false)" class="btn btn-sm btn-info" :disabled="(!suggestedRwSelected && suggestedRwMethod=='selected') || suggestedRwAll.length==0 || suggestedRwInProgress">
+                      Step once
+                    </button>
 
-                <!-- same button as Run -->
-                <button type="button" class="btn btn-outline-warning" @click="pushRw()">
+                    &nbsp;
+
+                    <button type="button" @click="suggestedRwAppend(true)" class="btn btn-sm btn-info" :disabled="suggestedRwMethod!='random' || suggestedRwAll.length==0 || suggestedRwInProgress">
+                      Roll out {{suggestedRwMax}}
+                    </button>
+                  </div>
+                </form>
+              </div>
+
+              <div>
+                <input type="range" id="cowbell2"
+                       min="0" :max="rwValSuggested.length"  step="1" v-model="rwRangeSuggested"
+                       v-on:change="pushRw()"
+                       :disabled="!rwValSuggested.length"
+                       >
+                <label for="cowbell2">Step {{rwRangeSuggested}}/{{rwValSuggested.length}}</label>
+                <span v-if="rwRangeSuggested == 0">
+                  (initial)
+                </span>
+                <span v-if="rwRangeSuggested > 0">
+                  ({{array2txt(rwValSuggested[rwRangeSuggested-1])}})
+                </span>
+
+                <button type="button" class="btn btn-outline-warning" @click="resetIntermezzo(); pushRw()" :disabled="rwValSuggested.length==0">
                   Reset
                   &nbsp;
                   <span class="badge badge-warning">&gt;</span>
                 </button>
               </div>
+            </div>
 
-            </form>
           </div>
+
 
           <div v-if="suggestedRwInProgress" class="alert alert-warning">
             Roll out in progress...
@@ -535,22 +572,6 @@ dist (all|node_in) node_center (all|node_l) (all|node_r)
                 Export
               </button>
             </small>
-
-            <div v-if="rwVal.length > 0">
-              <input type="range" id="cowbell"
-                     min="0" :max="rwVal.length"  step="1" v-model="rwRange"
-                     v-on:change="pushRw()"
-                     >
-              <label for="cowbell">Step {{rwRange}}/{{rwVal.length}}</label>
-
-              <span v-if="rwRange == 0">
-                (initial)
-              </span>
-              <span v-if="rwRange > 0">
-                ({{array2txt(rwVal[rwRange-1])}})
-              </span>
-
-            </div>
 
             <div v-html="graph2Svg.outerHTML" v-if="!error2Msg && graphManager=='vizjs'">
             </div>

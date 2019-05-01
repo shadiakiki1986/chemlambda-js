@@ -198,10 +198,10 @@ beta v4 A5 # this L is on A right (not left)`
    "javascript": `_ => {
   // PRED := λn.λf.λx.n (λg.λh.h (g f)) (λu.x) (λu.u)
   var PRED = n => f1 => x1 => {
-    var L4 = u1 => x1
-    var L5 = u2 => u2
-    var L6 = g => h => h(g(f1))
-    return ((n(L6))(L4))(L5)
+    var L4_pred = u1_pred => x1_pred
+    var L5_pred = u2_pred => u2_pred
+    var L6_pred = g_pred => h_pred => h_pred(g_pred(f1_pred))
+    return ((n(L6_pred))(L4_pred))(L5_pred)
   }
 
   // three := λf.λx.f(f(f x))
@@ -285,13 +285,12 @@ var app = new Vue({
     "jsExSelected": jsExamplesOpt[0],
 
     "dot1Manual": "",
-    "rwTxt": "",
+    "rwTxtInitial": "",
 
     "jsAuto": "",
     "dict1Auto": "",
     "dict2tmp": "", // graph data on which dict2Auto is based, but without plotting
     "dict2Auto": "",
-    "rwAuto": [],
 
     "error1Msg": "",
     "error2Msg": "",
@@ -303,17 +302,17 @@ var app = new Vue({
 
     "extendedLabels": true,
     "suggestedRwSelected": "",
-    "suggestedRwStep": 0,
 
     "suggestedRwMax": 25, // maximum steps to roll out each time
-    "suggestedRwMethod": "selected",
+    "suggestedRwMethod": "random",
     "suggestedRwInProgress": false,
     //"dict2FromDict1Callback": false
-    "suggestedRwHistory": [],
+    "suggestedRwRestriction": "beta reduction",
     "graphManager": "vizjs",
 
-    "rwRange": 0
-
+    "rwRangeSuggested": 0,
+    "rwRangeInitial": 0,
+    "rwValSuggested": []
   },
 
   methods: {
@@ -322,8 +321,13 @@ var app = new Vue({
       this.inDescription=""
       this.inJavascript=""
       this.dot1From="lambda"
-      this.rwTxt = ""
-      this.rwRange = 0
+      this.rwTxtInitial = ""
+      this.rwRangeInitial = 0
+    },
+
+    resetIntermezzo: function() {
+      this.rwRangeSuggested = 0
+      this.rwValSuggested = []
     },
 
     resetOutput: function() {
@@ -332,16 +336,14 @@ var app = new Vue({
       this.jsAuto = ""
       this.dict1Auto = ""
       this.graph1Visible = true
-      this.rwAuto = utils.clone([])
       this.dict2tmp = ""
       this.dict2Auto = "" // utils.clone(this.dict1Auto) // without any re-writes
       lr.globalIdRegister = [] // to re-issue IDs
-      this.suggestedRwStep = 0
-      this.suggestedRwHistory = []
     },
 
     jsExOnChange: function() {
       this.resetInput()
+      this.resetIntermezzo()
       this.resetOutput()
 
       this.inTitle = this.jsExSelected.title
@@ -350,8 +352,10 @@ var app = new Vue({
       this.jsAuto = this.jsExSelected.javascript; // this was utils.clone() eventhough it was just text
 
       if("rewrites" in this.jsExSelected)  {
-        this.rwTxt = this.jsExSelected.rewrites
+        this.rwTxtInitial = this.jsExSelected.rewrites
       }
+
+      this.pushRw()
 
     },
 
@@ -364,9 +368,9 @@ var app = new Vue({
       this.graph1Visible = true
 
       if("rewrites" in this.jsExSelected)  {
-        this.rwTxt = this.jsExSelected.rewrites
+        this.rwTxtInitial = this.jsExSelected.rewrites
       } else {
-        this.rwTxt = ""
+        this.rwTxtInitial = ""
       }
 
       this.dict2Auto = "" // utils.clone(this.dict1Auto) // without any re-writes
@@ -382,9 +386,6 @@ var app = new Vue({
       } else {
         this.dict1Auto = utils.clone(this.dot1Manual) // FIXME shouldnt set dot to dict
       }
-
-      // subset as per the range controller
-      this.rwAuto = utils.clone(this.rwVal.slice(0, this.rwRange))
 
       // final step
       try {
@@ -406,8 +407,6 @@ var app = new Vue({
         throw "suggestedRwAppend(till_none=true) only supported when suggestedRwMethod=='random'."
       }
 
-      // increment
-      this.suggestedRwStep += 1
       this.suggestedRwInProgress = true
 
       // check method
@@ -439,7 +438,7 @@ var app = new Vue({
 
         // if done, then plot and return, otherwise recurse
         // done = loop not requested or no more suggestions or reached a multiple of the max
-        if(!till_none || self.suggestedRwAll.length == 0 || self.suggestedRwStep % self.suggestedRwMax == 0) {
+        if(!till_none || self.suggestedRwAll.length == 0 || self.rwRangeSuggested % self.suggestedRwMax == 0) {
           // plot with re-writes
           console.log("plotting with rewrites", self.dict2FromDict1Auto)
           self.dict2Auto = utils.clone(self.dict2FromDict1Auto);
@@ -449,20 +448,27 @@ var app = new Vue({
         // recurse, without plotting yet
         self.suggestedRwAppend(till_none)
       }
-      this.rwAuto = utils.clone(this.rwVal)
+      this.rwAutoInitial = utils.clone(this.rwValInitial)
       */
 
       // method 1: complete re-calculation of initial graph + re-writes and graphing
-      //this.rwTxt += '\n' + rwCurTxt
-      //var tmp_step = this.suggestedRwStep
+      //this.rwTxtInitial += '\n' + rwCurTxt
+      //var tmp_step = this.rwRangeSuggested
       //this.pushRw()
-      //this.suggestedRwStep = tmp_step
+      //this.rwRangeSuggested = tmp_step
 
       // method 2: calculate new graph based on current graph and re-writes
-      this.suggestedRwHistory = this.suggestedRwHistory.concat([rwCurTxt])
       try {
-
+        // note that this returns a list of one re-write,
+        // so no need for enclosing into brackets in the .concat call below
         var rwCurVal = gr.txt2array(rwCurTxt)
+
+        // first truncate to whatever is being displayed to the user in case of usage of slider
+        // If the slider is at the right-most edge (maximum), then this does nothing
+        this.rwValSuggested = this.rwValSuggested.slice(0, this.rwRangeSuggested)
+
+        // now append
+        this.rwValSuggested = this.rwValSuggested.concat(rwCurVal)
 
         // apply rewrites
         // notice that this inputs dict2tmp and below updates it too
@@ -478,7 +484,10 @@ var app = new Vue({
         return
       }
 
-      if(till_none && this.suggestedRwAll.length > 0 && (this.suggestedRwStep % this.suggestedRwMax) != 0) {
+      // increment .. notice that the slider could give a string instead of integer
+      this.rwRangeSuggested = Number(this.rwRangeSuggested) + 1
+
+      if(till_none && this.suggestedRwAll.length > 0 && (this.rwRangeSuggested % this.suggestedRwMax) != 0) {
         // recurse, after the previous plotting
         this.suggestedRwAppend(till_none)
       }
@@ -493,8 +502,8 @@ var app = new Vue({
 
     },
 
-    array2txt: function(rwVal) {
-      return gr.array2txt(rwVal)
+    array2txt: function(rwValX) {
+      return gr.array2txt(rwValX)
     }
 
   },
@@ -560,13 +569,20 @@ var app = new Vue({
 
 
     "dict2FromDict1Auto": function() {
-      // compute new graph from re-writes (rwAuto)
-      return gr.apply_rewrites(utils.clone(this.dict1Auto), this.rwAuto)
+      // Compute new graph from re-writes (rwAutoInitial)
+
+      // This yields the graph after the initial re-writes
+      // and after the suggested re-writes
+      return gr.apply_rewrites(utils.clone(this.dict1Auto), this.rwAutoInitial.concat(this.rwAutoSuggested))
+
+      // This yields the graph after the initial re-writes
+      // but before the suggested re-writes
+      //return gr.apply_rewrites(utils.clone(this.dict1Auto), this.rwAutoInitial)
     },
 
 
-    "rwVal": function() {
-      return gr.txt2array(this.rwTxt)
+    "rwValInitial": function() {
+      return gr.txt2array(this.rwTxtInitial)
     },
 
 
@@ -579,21 +595,33 @@ var app = new Vue({
 
       // filter for edges between L and A, and suggest beta moves on them
       var beta_listStr = []
+      var self = this
       this.dict2tmp.edges.forEach(e1 => {
         // if not L-A, ignore
-        if(!(e1.from.type=="L" && e1.to.type=="A")) return
+        // Also restrict to L.r to A.l
+        if(self.suggestedRwRestriction == "beta reduction") {
+          var condition = e1.from.type=="L" && e1.from.portname=="r" && e1.to.type=="A" && e1.to.portname=="l"
+          if(!condition) return
+        } else {
+          if(!(e1.from.type=="L" && e1.to.type=="A")) return
+        }
 
         // if L has no input, ignore
         var L_in = this.dict2tmp.edges.filter(e2 => e2.to.id == e1.from.id)
         if(L_in.length == 0) return
 
         // if A has no output, ignore
-        var A_out = this.dict2tmp.edges.filter(e2 => e2.from.id == e1.to.id)
+        var A_out = self.dict2tmp.edges.filter(e2 => e2.from.id == e1.to.id)
         if(A_out.length == 0) return
 
         // append
         beta_listStr = beta_listStr.concat(["beta " + e1.from.id + " " + e1.to.id])
       })
+
+      // just return the beta re-writes
+      if(this.suggestedRwRestriction == "beta reduction") {
+        return beta_listStr
+      }
 
       // filter for L nodes that have a fan-in or fan-out
       var dist_listStr = []
@@ -649,7 +677,13 @@ var app = new Vue({
 
       // return
       return beta_listStr.concat(dist_listStr)
-    }
+    },
+
+    // subset as per the range controller
+    rwAutoInitial: function() { return this.rwValInitial.slice(0, this.rwRangeInitial) },
+    rwAutoSuggested: function() { return this.rwValSuggested.slice(0, this.rwRangeSuggested) }
+
+
 
   }
   /*
