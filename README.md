@@ -2,13 +2,22 @@
 
 [![Build Status](https://travis-ci.org/shadiakiki1986/chemlambda-js.svg?branch=master)](https://travis-ci.org/shadiakiki1986/chemlambda-js)
 
-Artificial chemistry based on graph rewrites in the browser. Check live deployment at http://shadiakiki1986.github.io/chemlambda-js/
+Graphic lambda calculus as a framework for molecular computing (fingers crossed :D )
 
-Can serve as a lambda calculus interpreter.
+Features:
 
-It is a javascript implementation of [chemlabda-gui](https://github.com/chorasimilarity/chemlambda-gui/blob/gh-pages/dynamic/README.md). Please check there for more details on the original work of the author.
+- Hosted at http://shadiakiki1986.github.io/chemlambda-js/
+- Lambda calculus interpreter
+- Artificial chemistry based on graph rewrites in the browser
+- It is a javascript implementation of [chemlabda-gui](https://github.com/chorasimilarity/chemlambda-gui/blob/gh-pages/dynamic/README.md)
+  - Please check there for more details on the original work of the author.
 
 This project is WIP. Check [CHANGELOG](CHANGELOG.md) for more details.
+
+
+## Goals
+
+The aim is to build a working prototype of a framework for molecular (DNA?) computing. Functions and values are implemented as 3D structures. Interaction between functions and values is implemented with graph re-writes. These graph re-writes correspond to chemical reactions that modify the original 3D structure. The resultant 3D structure would be a representation of a new function/value.
 
 
 ## Usage
@@ -17,9 +26,9 @@ In the browser:
 
 1. Open `index.html` in a browser (or hosted version at http://shadiakiki1986.github.io/chemlambda-js/).
 2. Choose one of the lambda calculus examples in the top right dropdown
-3. Click `Load`
+3. Click `Load` (this will also display the graph for the defaults in the example)
 4. Read the title, description, and javascript implementation of the loaded example in the left pane
-5. Choose the suitable visualization options
+5. Choose the suitable visualization options or modify the lambda terms implementation
 6. Click `Run`
 7. Read the displayed graph
 8. Add re-writes in the text box in the lower left pane, or select suggested re-writes in the top-middle dropdown
