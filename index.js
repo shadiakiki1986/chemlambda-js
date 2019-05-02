@@ -3,6 +3,7 @@
 
 
 var gid = new GlobalIdRegister() // shared between lambda reader and graph rewriter
+var mv = new MovesVisualizer()
 var lr = new LambdaReader(gid)
 var lt = new LambdaTerms()
 var gr = new GraphRewriter(gid)
@@ -312,7 +313,12 @@ var app = new Vue({
 
     "rwRangeSuggested": 0,
     "rwRangeInitial": 0,
-    "rwValSuggested": []
+    "rwValSuggested": [],
+
+    "pathsList": [],
+    "pathsDot": "",
+    "pathsSvg": "",
+    "pathsErrorMsg": ""
   },
 
   methods: {
@@ -401,7 +407,7 @@ var app = new Vue({
 
     },
 
-    suggestedRwAppend: function(till_none) {
+    suggestedRwAppend: function(till_none, draw_final) {
       // sanity check
       if(till_none && this.suggestedRwMethod!='random') {
         throw "suggestedRwAppend(till_none=true) only supported when suggestedRwMethod=='random'."
@@ -494,16 +500,33 @@ var app = new Vue({
 
       this.suggestedRwInProgress = false
 
-      this.dict2Auto = utils.clone(this.dict2tmp) // copy to graph
+      if(draw_final) {
+        // copy to graph
+        this.dict2Auto = utils.clone(this.dict2tmp)
 
-      // set visibility of graph after re-writes
-      this.graph1Visible = false
+        // set visibility of graph after re-writes
+        this.graph1Visible = false
+      }
 
 
     },
 
     array2txt: function(rwValX) {
       return gr.array2txt(rwValX)
+    },
+
+    simulateAllPaths: function() {
+      mv.reset()
+      this.pathsList = []
+      for(i=0;i<10;i++) {
+        this.resetIntermezzo()
+        this.resetOutput()
+        this.suggestedRwAppend(true, false)
+        this.pathsList = this.pathsList.concat(this.rwValSuggested)
+        mv.appendPath(this.rwValSuggested)
+      }
+
+      this.pathsDot = mv.paths2dot()
     }
 
   },
@@ -685,7 +708,7 @@ var app = new Vue({
 
 
 
-  }
+  },
   /*
   no longer using watch here because it should actually watch 2 variables
   Check below
@@ -694,6 +717,22 @@ var app = new Vue({
     "dot2Auto":
   }
   */
+  watch: {
+    pathsDot: function() {
+      // based on doplot
+      var self = this
+      var viz = new Viz();
+      viz.renderSVGElement(this.pathsDot)
+        .then(function(element) {
+          self.pathsSvg = element;
+        })
+        .catch(error => {
+          // Create a new Viz instance (@see Caveats page for more info)
+          viz = new Viz();
+          self.pathsErrorMsg = error
+          console.error(error);
+        });
+  }
 })
 
 

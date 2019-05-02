@@ -489,13 +489,13 @@ dist (all|node_in) node_center (all|node_l) (all|node_r)
                   </div>
 
                   <div>
-                    <button type="button" @click="suggestedRwAppend(false)" class="btn btn-sm btn-info" :disabled="(!suggestedRwSelected && suggestedRwMethod=='selected') || suggestedRwAll.length==0 || suggestedRwInProgress">
+                    <button type="button" @click="suggestedRwAppend(false, true)" class="btn btn-sm btn-info" :disabled="(!suggestedRwSelected && suggestedRwMethod=='selected') || suggestedRwAll.length==0 || suggestedRwInProgress">
                       Step once
                     </button>
 
                     &nbsp;
 
-                    <button type="button" @click="suggestedRwAppend(true)" class="btn btn-sm btn-info" :disabled="suggestedRwMethod!='random' || suggestedRwAll.length==0 || suggestedRwInProgress">
+                    <button type="button" @click="suggestedRwAppend(true, true)" class="btn btn-sm btn-info" :disabled="suggestedRwMethod!='random' || suggestedRwAll.length==0 || suggestedRwInProgress">
                       Roll out {{suggestedRwMax}}
                     </button>
                   </div>
@@ -584,6 +584,15 @@ dist (all|node_in) node_center (all|node_l) (all|node_r)
 
           </div>
 
+        </div><!-- end of col-8 for middle pane -->
+
+        <div class="col-1">
+          <button @click="simulateAllPaths()">Simulate many paths</button>
+          <div v-html="pathsSvg.outerHTML" v-if="!pathsErrorMsg && pathsDot">
+          </div>
+          <div v-if="pathsErrorMsg" class="alert alert-danger">
+            {{pathsErrorMsg}}
+          </div>
         </div>
       </div>
 
@@ -599,6 +608,7 @@ dist (all|node_in) node_center (all|node_l) (all|node_r)
     </div> <!-- end main container of page -->
 
     <script src="Utils.js"></script>
+    <script src="MovesVisualizer.js"></script>
     <script src="LambdaTerms.js"></script>
     <script src="GlobalIdRegister.js"></script>
     <script src="LambdaReader.js"></script>

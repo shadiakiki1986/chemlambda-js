@@ -1,3 +1,8 @@
+Version 0.1.6 (2019-05-02)
+
+* feature: WIP draw tree of different paths that are followable
+
+
 Version 0.1.5 (2019-05-01)
 
 * feature: sliders for initial re-writes as well as suggested re-writes
